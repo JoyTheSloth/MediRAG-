@@ -16,7 +16,7 @@ sentence-transformers>=2.5.0
 # Medical NLP - installed in Dockerfile instead
 # scispacy>=0.5.4
 # https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_lg-0.5.4.tar.gz
-# https://s3-us-west-2.amazonaws.com/ai2-s3-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
+# https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
 
 # Evaluation
 ragas>=0.1.0

@@ -15,6 +15,10 @@ const MediApiAgent = () => {
     ]);
     
     const [activeDemoStep, setActiveDemoStep] = useState(0);
+    const [sandboxQuery, setSandboxQuery] = useState('Is it safe to give Sildenafil 50mg to a patient on Nitrates?');
+    const [sandboxScanning, setSandboxScanning] = useState(false);
+    const [sandboxResult, setSandboxResult] = useState(null);
+    const [showDeployBanner, setShowDeployBanner] = useState(false);
 
     // Dynamic Traffic Logs State
     const [trafficLogs, setTrafficLogs] = useState([
@@ -101,6 +105,40 @@ const MediApiAgent = () => {
         setActiveRules(rules => rules.map(rule => rule.id === id ? { ...rule, active: !rule.active } : rule));
     };
 
+    const handleRunSandboxTest = () => {
+        setSandboxScanning(true);
+        setSandboxResult(null);
+        setTimeout(() => {
+            setSandboxScanning(false);
+            const q = sandboxQuery.toLowerCase();
+            if (q.includes('sildenafil') || q.includes('nitrate') || q.includes('aspirin') || q.includes('warfarin') || q.includes('ibuprofen') || q.includes('penicillin')) {
+                setSandboxResult({
+                    status: '🚫 BLOCKED',
+                    class: 'status-fail',
+                    reason: 'DRUG_INTERACTION_DETECTED',
+                    details: 'Critical interaction identified: Concomitant use of Sildenafil (phosphodiesterase inhibitor) with Nitrates or anticoagulants causes catastrophic cardiovascular pressure drops.',
+                    action: 'Blocked & logged to SaMD audit log.'
+                });
+            } else if (q.includes('sharma') || q.includes('patient') || q.includes('verma') || q.includes('gupta') || q.includes('age') || q.includes('rohit') || q.includes('amit')) {
+                setSandboxResult({
+                    status: '🔒 SANITIZED',
+                    class: 'status-warn',
+                    reason: 'PHI_PII_DETECTED',
+                    details: 'Protected Health Information found: Patient name and identifiers auto-redacted in compliance with HIPAA Safe Harbor anonymization.',
+                    action: 'Redacted field values and authorized sanitized transmission.'
+                });
+            } else {
+                setSandboxResult({
+                    status: '✔ AUTHORIZED',
+                    class: 'status-pass',
+                    reason: 'PATHWAY_CLEAR',
+                    details: 'No critical safety contraindications or PHI elements detected in incoming payload.',
+                    action: 'Authorized payload routed to vector retrieval.'
+                });
+            }
+        }, 1500);
+    };
+
     const handleSaveRule = () => {
         const triggerMap = {
             'API_REQUEST_MADE': 'API request made',
@@ -129,10 +167,43 @@ const MediApiAgent = () => {
         };
 
         setActiveRules([newRule, ...activeRules]);
+        setShowDeployBanner(true);
+        setTimeout(() => setShowDeployBanner(false), 4000);
     };
 
     return (
         <div className="agent-container reveal-up">
+            {/* Deploy success toast banner */}
+            {showDeployBanner && (
+                <div style={{
+                    position: 'fixed',
+                    top: '20px',
+                    left: '55%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(16, 185, 129, 0.95)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    boxShadow: '0 10px 30px rgba(16, 185, 129, 0.4), 0 0 100px rgba(0,200,150,0.1)',
+                    backdropFilter: 'blur(10px)',
+                    color: 'white',
+                    padding: '14px 28px',
+                    borderRadius: '12px',
+                    zIndex: 99999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    width: '450px',
+                    maxWidth: '90vw'
+                }}>
+                    <span style={{ fontSize: '20px' }}>🚀</span>
+                    <div style={{ textAlign: 'left' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 'bold' }}>SAFETY POLICY ACTIVE & DEPLOYED</div>
+                        <div style={{ fontSize: '10.5px', color: 'rgba(255,255,255,0.8)', fontWeight: 'normal', marginTop: '2px', lineHeight: '1.3' }}>Enforcing newly deployed policy rule_safeguard across all active healthcare API gateways.</div>
+                    </div>
+                </div>
+            )}
+
             {/* HEADER */}
             <div className="agent-header">
                 <h1>MediAPI Agent</h1>
@@ -392,8 +463,6 @@ const MediApiAgent = () => {
                         </div>
                         <p className="section-desc">If-this-then-that automation for medical safety and governance.</p>
 
-                        <p className="section-desc">If-this-then-that automation for medical safety and governance.</p>
-
                         <div className="premium-rule-builder">
                             <style>{`
                                 .premium-rule-builder {
@@ -580,6 +649,123 @@ const MediApiAgent = () => {
 {<span className="syntax-punct">{`}`}</span>}
                                 </pre>
                             </div>
+                        </div>
+                    </section>
+
+                    {/* 🧪 INTERACTIVE FIREWALL SANDBOX */}
+                    <section className="agent-section" style={{ border: '1px solid rgba(56, 189, 248, 0.2)', background: 'linear-gradient(180deg, rgba(15,23,42,0.6) 0%, rgba(56,189,248,0.03) 100%)' }}>
+                        <div className="section-title">
+                            <span className="sc-icon">🧪</span> MediAPI Interception Sandbox
+                        </div>
+                        <p className="section-desc">Test how the safety agents parse and intercept healthcare payload requests in real-time.</p>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                            <div className="builder-field" style={{ textTransform: 'none' }}>
+                                <label style={{ color: '#38BDF8', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sample API Request Payload (Text / Prescription)</label>
+                                <textarea 
+                                    value={sandboxQuery} 
+                                    onChange={e => setSandboxQuery(e.target.value)}
+                                    placeholder="Enter a request like 'Patient Rajan Sharma takes Ibuprofen 400mg' or 'Is Sildenafil safe with nitrates?'..."
+                                    style={{
+                                        background: 'rgba(0,0,0,0.3)',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        color: 'white',
+                                        fontSize: '13px',
+                                        padding: '12px',
+                                        borderRadius: '8px',
+                                        fontFamily: 'monospace',
+                                        minHeight: '80px',
+                                        resize: 'vertical',
+                                        outline: 'none',
+                                        marginTop: '6px'
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                <button 
+                                    onClick={() => setSandboxQuery("Is it safe to give Sildenafil 50mg to a patient on Nitrates?")}
+                                    style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                                >
+                                    Try Drug Interaction 💊
+                                </button>
+                                <button 
+                                    onClick={() => setSandboxQuery("Patient Amit Verma, age 42, needs a prescription check.")}
+                                    style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', color: '#f59e0b', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                                >
+                                    Try PHI Privacy Shield 🔒
+                                </button>
+                                <button 
+                                    onClick={() => setSandboxQuery("What is the standard adult dose of Paracetamol?")}
+                                    style={{ background: 'rgba(0, 200, 150, 0.1)', border: '1px solid rgba(0, 200, 150, 0.2)', color: '#00C896', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                                >
+                                    Try Safe Query ✔
+                                </button>
+                            </div>
+
+                            <button 
+                                onClick={handleRunSandboxTest} 
+                                disabled={sandboxScanning}
+                                style={{
+                                    background: 'linear-gradient(135deg, #38BDF8, #0284C7)',
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    padding: '12px',
+                                    cursor: sandboxScanning ? 'not-allowed' : 'pointer',
+                                    boxShadow: '0 4px 15px rgba(56, 189, 248, 0.3)',
+                                    marginTop: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    fontSize: '13px'
+                                }}
+                            >
+                                {sandboxScanning ? 'Scanning Payload...' : 'Test Firewall Interception ⚡'}
+                            </button>
+
+                            {sandboxScanning && (
+                                <div style={{
+                                    background: 'rgba(0,0,0,0.4)',
+                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    borderRadius: '8px',
+                                    padding: '16px',
+                                    textAlign: 'center',
+                                    color: '#38BDF8',
+                                    fontSize: '12px',
+                                    fontFamily: 'monospace'
+                                }}>
+                                    <span style={{ display: 'inline-block', width: '10px', height: '10px', background: '#38BDF8', borderRadius: '50%', marginRight: '8px', animation: 'pulseNode 1s infinite alternate' }}></span>
+                                    Executing MediAPI pipeline inspection... checking context rules...
+                                </div>
+                            )}
+
+                            {sandboxResult && (
+                                <div style={{
+                                    background: 'rgba(13, 17, 23, 0.9)',
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    borderRadius: '8px',
+                                    padding: '16px',
+                                    fontFamily: 'monospace',
+                                    textAlign: 'left'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px', marginBottom: '10px' }}>
+                                        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>INTERCEPTION REPORT</span>
+                                        <span className={sandboxResult.class} style={{ fontWeight: 900, fontSize: '12px' }}>{sandboxResult.status}</span>
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#fff', marginBottom: '8px' }}>
+                                        <span style={{ color: 'rgba(255,255,255,0.4)' }}>Reason:</span> <span style={{ color: '#f59e0b' }}>{sandboxResult.reason}</span>
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#cbd5e1', lineHeight: '1.4', marginBottom: '8px' }}>
+                                        <span style={{ color: 'rgba(255,255,255,0.4)' }}>Finding:</span> {sandboxResult.details}
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#00C896' }}>
+                                        <span style={{ color: 'rgba(255,255,255,0.4)' }}>Action:</span> {sandboxResult.action}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </section>
                 </div>

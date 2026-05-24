@@ -1,23 +1,5 @@
-# Ignore large databases and generated content
-# NOTE: We need specific ignores so we can include data/index/ for HF Spaces
-
-# Ignore FAISS files except in data/index/
-*.faiss
-!data/index/*.faiss
-
-# Ignore metadata_store.pkl except in data/index/
-metadata_store.pkl
-!data/index/metadata_store.pkl
-
-# Ignore data subdirectories except index/
-data/raw/
-data/processed/
-data/*.csv
-data/*.db
-
-# Include data/index/ for Hugging Face Spaces deployment
-!data/index/
-!data/index/**
+# Ignore all large database files and directories
+data/
 
 # Python
 __pycache__/

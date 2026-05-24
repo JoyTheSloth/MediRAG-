@@ -64,3 +64,27 @@ def test_aggregator_logic():
     assert abs(res.score - 0.9) < 0.01
     assert res.details["hrs"] == 10
     assert res.details["risk_band"] == "LOW"
+
+
+def test_drug_interactions_and_entity_verifier():
+    from src.modules.entity_verifier import check_drug_interactions, verify_entities
+    
+    # 1. Test DDI check directly with known interactive drugs (Warfarin: 11289, Ibuprofen: 5640)
+    interactions = check_drug_interactions(["11289", "5640"])
+    
+    # Verify interactions structure is a valid list of dicts
+    assert isinstance(interactions, list)
+    if interactions:
+        assert "drugs" in interactions[0]
+        assert "severity" in interactions[0]
+        assert "description" in interactions[0]
+        
+    # 2. Verify fallback & interface safety of verify_entities
+    res = verify_entities(
+        answer="Patient is taking Metformin and Lisinopril.",
+        question="What medications is the patient on?",
+        context_docs=["The patient is prescribed Metformin 500mg and Lisinopril 10mg."]
+    )
+    assert res.score is not None
+    assert isinstance(res.details, dict)
+

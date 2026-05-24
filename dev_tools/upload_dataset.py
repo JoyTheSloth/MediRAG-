@@ -15,8 +15,8 @@ repo_id = "joytheslothh/MediRAG-Index-Data"
 print(f"Ensuring dataset repo exists: {repo_id}")
 api.create_repo(repo_id=repo_id, repo_type="dataset", exist_ok=True, private=True)
 
-# Point to the NEW updated files
-base_path = r"d:\MediRag 2.0\updated\data"
+# Point to the actual active Backend data files
+base_path = r"d:\MediRag 2.0\Backend\data"
 
 print("\nUploading updated data files to HF Dataset repo...")
 

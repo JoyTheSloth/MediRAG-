@@ -556,6 +556,149 @@ const About = () => {
                     max-width: 250px !important;
                     justify-content: center !important;
                 }
+
+                .features-grid-v2 {
+                    grid-template-columns: 1fr !important;
+                    gap: 16px !important;
+                }
+                .feature-card-v2 {
+                    padding: 24px !important;
+                    border-radius: 20px !important;
+                }
+            }
+
+            /* Elaborate Features Grid Styles */
+            .features-grid-v2 {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 32px;
+                margin-top: 60px;
+            }
+
+            .feature-card-v2 {
+                background: rgba(17, 24, 39, 0.45);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 28px;
+                padding: 40px;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                position: relative;
+                overflow: hidden;
+                text-align: left;
+            }
+
+            .feature-card-v2:hover {
+                transform: translateY(-10px);
+                border-color: var(--green-accent);
+                background: rgba(17, 24, 39, 0.85);
+                box-shadow: 0 25px 50px rgba(16, 185, 129, 0.12);
+            }
+
+            .feature-card-v2::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 140px;
+                height: 140px;
+                background: radial-gradient(circle at top right, rgba(0, 200, 150, 0.1), transparent 70%);
+                border-radius: 50%;
+                pointer-events: none;
+            }
+
+            .feature-icon-v2 {
+                width: 64px;
+                height: 64px;
+                border-radius: 20px;
+                background: rgba(0, 200, 150, 0.08);
+                border: 1px solid rgba(0, 200, 150, 0.2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 32px;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .feature-badge-v2 {
+                display: inline-block;
+                align-self: flex-start;
+                padding: 4px 12px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                background: rgba(0, 200, 150, 0.1);
+                color: var(--green-accent);
+                border: 1px solid rgba(0, 200, 150, 0.2);
+            }
+
+            .feature-title-v2 {
+                font-size: 22px;
+                font-weight: 800;
+                color: white;
+            }
+
+            .feature-desc-v2 {
+                font-size: 14.5px;
+                line-height: 1.7;
+                color: var(--text-gray-light);
+            }
+
+            .feature-highlight-list-v2 {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                margin-top: 8px;
+                padding-left: 0;
+                list-style: none;
+            }
+
+            .feature-highlight-item-v2 {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 13.5px;
+                color: var(--text-gray);
+            }
+
+            .feature-highlight-item-v2 span.bullet {
+                color: var(--green-accent);
+                font-weight: 800;
+            }
+
+            /* Light Theme Adaptation for Features Section */
+            [data-theme="light"] .feature-card-v2 {
+                background: #FFFFFF !important;
+                border-color: rgba(0, 0, 0, 0.06) !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+            }
+
+            [data-theme="light"] .feature-card-v2:hover {
+                background: #F8FAFC !important;
+                border-color: rgba(16, 185, 129, 0.35) !important;
+                box-shadow: 0 15px 35px rgba(16, 185, 129, 0.08) !important;
+            }
+
+            [data-theme="light"] .feature-title-v2 {
+                color: #1E293B !important;
+            }
+
+            [data-theme="light"] .feature-desc-v2 {
+                color: #475569 !important;
+            }
+
+            [data-theme="light"] .feature-highlight-item-v2 {
+                color: #64748B !important;
+            }
+
+            [data-theme="light"] .feature-icon-v2 {
+                background: rgba(16, 185, 129, 0.05) !important;
+                border-color: rgba(16, 185, 129, 0.15) !important;
             }
             `}
             </style>
@@ -627,6 +770,140 @@ const About = () => {
             </div>
             
             <p className="pipeline-caption reveal-up">All modules run locally. Zero paid APIs. Full pipeline completes in &lt; 30 seconds on CPU.</p>
+        </div>
+    </section>
+
+
+
+    <section className="section about-approach-section" style={{ borderTop: '1px solid rgba(16, 185, 129, 0.1)', paddingBottom: '100px' }}>
+        <div className="section-container">
+            <div className="section-header reveal-up">
+                <div className="section-label about-section-label"><span className="sl-dash">—</span>SYSTEM CAPABILITIES<span className="sl-dash">—</span></div>
+                <h2 className="section-title">Ecosystem Features & Modules</h2>
+                <p className="section-subtitle">A comprehensive clinical suite built to optimize trust, safety, and transparency in medical AI deployments.</p>
+            </div>
+
+            <div className="features-grid-v2 reveal-up">
+                {/* Card 1: MediChat */}
+                <div className="feature-card-v2">
+                    <div className="feature-icon-v2">💬</div>
+                    <div className="feature-badge-v2">Conversational Demo</div>
+                    <h3 className="feature-title-v2">MediChat: Clinical Conversational AI</h3>
+                    <p className="feature-desc-v2">
+                        An interactive, real-time medical chatbot demonstrating our dual-model consensus algorithm. Pulls references from localized vector databases, masks PII on the fly, and highlights raw vs audited responses side-by-side.
+                    </p>
+                    <ul className="feature-highlight-list-v2">
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Real-Time Multi-Model Clinical Consensus</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Live Side-by-Side Clinical Compare Panel</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Interactive Medical Suggestion Chips & Guides</li>
+                    </ul>
+                </div>
+
+                {/* Card 2: Researchers Lab */}
+                <div className="feature-card-v2">
+                    <div className="feature-icon-v2">🔬</div>
+                    <div className="feature-badge-v2">Research Sandbox</div>
+                    <h3 className="feature-title-v2">Researchers Lab & RAGAS Evaluator</h3>
+                    <p className="feature-desc-v2">
+                        A dedicated sandbox for biomedical researchers to analyze RAG performance. Run detailed RAGAS metrics to compute hallucination indexes, factual precision, answer relevance, and semantic grounding.
+                    </p>
+                    <ul className="feature-highlight-list-v2">
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Rigorous RAGAS Score Validation (0.0 to 1.0)</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Dynamic Visual Metrics & Distribution Heatmaps</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Exportable Evaluation History for Peer Reviews</li>
+                    </ul>
+                </div>
+
+                {/* Card 3: Report Uploader */}
+                <div className="feature-card-v2">
+                    <div className="feature-icon-v2">📁</div>
+                    <div className="feature-badge-v2">Report Uploader</div>
+                    <h3 className="feature-title-v2">Clinical Report & Dataset Ingestion</h3>
+                    <p className="feature-desc-v2">
+                        Upload custom patient cases, clinical trial logs, lab sheets, or PDF/Text medical documents. Automatically chunks, embeds, and indexes them into the local vector database, expanding the RAG's knowledge store instantly.
+                    </p>
+                    <ul className="feature-highlight-list-v2">
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Automated PDF, Text, and Lab Sheet Parsing</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Dynamic Vector Database Chunking & Embedding</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Real-time Ingestion History Logs</li>
+                    </ul>
+                </div>
+
+                {/* Card 4: AI Governance */}
+                <div className="feature-card-v2">
+                    <div className="feature-icon-v2">⚖️</div>
+                    <div className="feature-badge-v2">AI Governance</div>
+                    <h3 className="feature-title-v2">Clinical Governance & Policy Manager</h3>
+                    <p className="feature-desc-v2">
+                        Enforce institutional parameters, strict safety limits, minimum confidence levels, and active warnings. Medical administrators can customize consensus weights and choose safe local LLMs to align with clinical standards.
+                    </p>
+                    <ul className="feature-highlight-list-v2">
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Minimum Safety Threshold & Dosage Alarms</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Multi-Model Routing Configuration (Llama, Ollama, etc.)</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Custom Weight Allocations for Consensus Engines</li>
+                    </ul>
+                </div>
+
+                {/* Card 5: Hospital Registry */}
+                <div className="feature-card-v2">
+                    <div className="feature-icon-v2">🏥</div>
+                    <div className="feature-badge-v2">EHR Integration</div>
+                    <h3 className="feature-title-v2">Hospital Enterprise Registry & Wards</h3>
+                    <p className="feature-desc-v2">
+                        Register custom wards (Cardiology, Oncology, Pediatrics) and define specific guideline protocols. Directly copy connection scripts (Python, JS, cURL) to securely interface MediRAG into Epic or Cerner EHR frameworks.
+                    </p>
+                    <ul className="feature-highlight-list-v2">
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Custom Ward Guidelines & Consensus Weights</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> On-Premise Secure LLM Host Configurations</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Epic & Cerner EHR Copyable Integration Scripts</li>
+                    </ul>
+                </div>
+
+                {/* Card 6: Patient Experience */}
+                <div className="feature-card-v2">
+                    <div className="feature-icon-v2">👥</div>
+                    <div className="feature-badge-v2">Patient Portal</div>
+                    <h3 className="feature-title-v2">Patient Experience & Layman Translation</h3>
+                    <p className="feature-desc-v2">
+                        Empowers patient portal charts by translating complex doctor jargon and pathological summaries into warm, empathetic, layman-friendly text. Runs automatic PHI data-masking to maintain absolute patient privacy.
+                    </p>
+                    <ul className="feature-highlight-list-v2">
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Empathetic Jargon Demystification & Term Breakdown</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Automated Real-time PII & PHI Chart Masking</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Groundedness & Faithfulness Verification checks</li>
+                    </ul>
+                </div>
+
+                {/* Card 7: Hinglish Bilingual */}
+                <div className="feature-card-v2">
+                    <div className="feature-icon-v2">🌐</div>
+                    <div className="feature-badge-v2">Bilingual Localization</div>
+                    <h3 className="feature-title-v2">Hinglish Bilingual Auditing</h3>
+                    <p className="feature-desc-v2">
+                        Optimized for South-Asian healthcare environments to process, translate, and evaluate bilingual Hinglish (Hindi-English mix) dialogue. Standardizes regional inputs into clinical English and runs cross-lingual consensus.
+                    </p>
+                    <ul className="feature-highlight-list-v2">
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Hinglish-to-Clinical English Query Translation</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Dual Consensus Evaluations on Multi-lingual RAG Output</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Empirical Hallucination & Faithfulness Evaluation</li>
+                    </ul>
+                </div>
+
+                {/* Card 8: API Playground */}
+                <div className="feature-card-v2">
+                    <div className="feature-icon-v2">⚙️</div>
+                    <div className="feature-badge-v2">Developer Sandbox</div>
+                    <h3 className="feature-title-v2">Interactive API Playground & Agent</h3>
+                    <p className="feature-desc-v2">
+                        A real-time developer sandbox simulating exactly how clinical endpoints handle inputs, fetch documents, audit answers, mask data, and return results. Copy connection schemas for high-speed, scalable system hooks.
+                    </p>
+                    <ul className="feature-highlight-list-v2">
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Real-time Pipeline Stage Visualizations</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Complete Interactive API Client Simulator Console</li>
+                        <li className="feature-highlight-item-v2"><span className="bullet">✓</span> Copyable Production-Grade Connection Payloads</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </section>
 

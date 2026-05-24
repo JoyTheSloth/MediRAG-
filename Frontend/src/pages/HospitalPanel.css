@@ -1,0 +1,267 @@
+.hospital-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.hospital-card {
+    background: rgba(12, 18, 36, 0.65);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.hospital-card:hover {
+    border-color: rgba(0, 200, 150, 0.2);
+}
+
+.h-card-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+}
+
+.h-desc {
+    font-size: 13px;
+    color: var(--text-gray);
+    line-height: 1.6;
+    margin: 8px 0 0 0;
+    text-align: left;
+}
+
+.h-grid-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.h-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+
+.h-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-gray-light);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.h-input {
+    width: 100%;
+    background: #090f1e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: white;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.h-input:focus {
+    border-color: var(--green-accent);
+    box-shadow: 0 0 0 3px rgba(0, 200, 150, 0.1);
+}
+
+.h-save-btn {
+    background: var(--green-accent);
+    color: #0c1224;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 200, 150, 0.2);
+    transition: all 0.2s ease;
+}
+
+.h-save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 200, 150, 0.3);
+}
+
+.h-save-btn:active {
+    transform: translateY(0);
+}
+
+/* MAIN CONTENT GRID */
+.h-main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 30px;
+}
+
+.h-dept-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.h-dept-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 18px;
+    transition: all 0.2s ease;
+}
+
+.h-dept-item.active {
+    background: rgba(0, 200, 150, 0.02);
+    border-color: rgba(0, 200, 150, 0.12);
+}
+
+.h-dept-item.inactive {
+    opacity: 0.6;
+}
+
+.h-dept-name {
+    font-size: 14px;
+}
+
+.h-dept-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+}
+
+/* SLIDERS */
+.h-dept-sliders {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.05);
+    animation: slide-down 0.2s ease-out;
+}
+
+@keyframes slide-down {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.h-slider-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.h-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: #090f1e;
+    border-radius: 4px;
+    outline: none;
+    accent-color: var(--green-accent);
+}
+
+.h-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--green-accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--green-accent);
+}
+
+/* CODE COMPONENT */
+.h-code-header {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.h-code-tab {
+    background: transparent;
+    border: none;
+    padding: 12px 24px;
+    color: var(--text-gray);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.h-code-tab:hover {
+    color: white;
+}
+
+.h-code-tab.active {
+    color: var(--green-accent);
+    border-bottom-color: var(--green-accent);
+}
+
+/* LIGHT THEME COMPATIBILITY */
+[data-theme="light"] .hospital-card {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-color: #d8f3dc !important;
+    box-shadow: 0 10px 40px rgba(64, 145, 108, 0.05) !important;
+}
+
+[data-theme="light"] .h-card-title {
+    color: #1b4332 !important;
+}
+
+[data-theme="light"] .h-desc {
+    color: #40916c !important;
+}
+
+[data-theme="light"] .h-dept-name {
+    color: #1b4332 !important;
+}
+
+[data-theme="light"] .h-dept-item {
+    background: rgba(64, 145, 108, 0.02) !important;
+    border-color: rgba(64, 145, 108, 0.08) !important;
+}
+
+[data-theme="light"] .h-dept-item.active {
+    background: rgba(64, 145, 108, 0.05) !important;
+    border-color: rgba(64, 145, 108, 0.2) !important;
+}
+
+[data-theme="light"] .h-input {
+    background: #ffffff !important;
+    border-color: #95d5b2 !important;
+    color: #081c15 !important;
+}
+
+[data-theme="light"] .h-slider {
+    background: #e9ecef !important;
+}
+
+[data-theme="light"] pre {
+    background: #f8f9fa !important;
+    border-color: #e9ecef !important;
+    color: #212529 !important;
+}
+
+[data-theme="light"] .h-code-tab {
+    color: #40916c !important;
+}
+
+[data-theme="light"] .h-code-tab.active {
+    color: #1b4332 !important;
+    border-bottom-color: #1b4332 !important;
+}
+
+@media (max-width: 1024px) {
+    .h-main-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .h-grid-inputs {
+        grid-template-columns: 1fr;
+    }
+}

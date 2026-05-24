@@ -172,6 +172,56 @@ def _lookup_rxnorm_api(drug_name: str, timeout: int = 4) -> Optional[str]:
     return None
 
 
+@lru_cache(maxsize=1024)
+def _cached_drug_interactions(rxcuis_tuple: tuple[str, ...], timeout: int) -> list[dict]:
+    """
+    Synchronous cached NIH REST request to resolve drug interactions.
+    """
+    rxcuis_str = "+".join(rxcuis_tuple)
+    url = f"https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis={rxcuis_str}"
+    try:
+        resp = requests.get(url, timeout=timeout)
+        if resp.status_code != 200:
+            return []
+        
+        data = resp.json()
+        interactions = []
+        
+        # ONCHigh returns fullInteractionTypeGroup
+        groups = data.get("fullInteractionTypeGroup", [])
+        for group in groups:
+            for fit in group.get("fullInteractionType", []):
+                for pair in fit.get("interactionPair", []):
+                    # Extract concepts
+                    concepts = pair.get("interactionConcept", [])
+                    drugs_involved = [c.get("minConcept", {}).get("name", "Unknown") for c in concepts]
+                    severity = pair.get("severity", "high").lower() # default to high since it's from ONCHigh
+                    description = pair.get("description", "")
+                    interactions.append({
+                        "drugs": drugs_involved,
+                        "severity": severity,
+                        "description": description
+                    })
+        return interactions
+    except Exception as e:
+        logger.error("Failed to fetch drug interactions from RxNav: %s", e)
+        return []
+
+
+def check_drug_interactions(rxcuis: list[str], timeout: int = 5) -> list[dict]:
+    """
+    Query RxNav API for drug-drug interactions between a list of RxCUIs.
+    Uses sorted tuple transformation to enable efficient order-independent caching.
+    """
+    if len(rxcuis) < 2:
+        return []
+    
+    # Sort RxCUIs to ensure cache consistency regardless of list order
+    rxcuis_tuple = tuple(sorted(rxcuis))
+    return _cached_drug_interactions(rxcuis_tuple, timeout)
+
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -306,12 +356,29 @@ def verify_entities(
 
         entity_results.append(result)
 
+    # --- Drug-Drug Interaction Check (DDI) -----------------------------------
+    # Gather standard RxCUIs for the verified drugs
+    rxcuis = [ent["rxcui"] for ent in entity_results if ent.get("rxcui")]
+    unique_rxcuis = list(set(rxcuis))
+    interactions = []
+    
+    if len(unique_rxcuis) >= 2:
+        logger.info("Multiple drugs detected in answer (%s) — checking for interactions...", unique_rxcuis)
+        interactions = check_drug_interactions(unique_rxcuis)
+        if interactions:
+            logger.warning("DDI Check: Found %d drug interactions!", len(interactions))
+            drug_flagged += len(interactions)
+
     # --- Score ---------------------------------------------------------------
     # Score is based on drug entities only (per SRS Section 6.2)
     if drug_total == 0:
         score = 0.5  # neutral — no drug entities to verify
     else:
-        score = drug_verified / drug_total
+        # Base score is drug_verified / drug_total
+        base_score = drug_verified / drug_total
+        # Deduct score for multi-drug interactions (0.2 deduction per interaction, cap at 0.0)
+        interaction_deduction = len(interactions) * 0.20
+        score = max(0.0, base_score - interaction_deduction)
 
     details = {
         "total_entities": len(raw_entities),
@@ -319,12 +386,13 @@ def verify_entities(
         "verified_count": drug_verified,
         "flagged_count": drug_flagged,
         "entities": entity_results,
+        "interactions": interactions,
     }
 
     latency_ms = int((time.perf_counter() - t0) * 1000)
     logger.info(
-        "Entity verification: %.3f (%d/%d drugs verified) in %d ms",
-        score, drug_verified, drug_total, latency_ms,
+        "Entity verification: %.3f (%d/%d drugs verified, %d DDI found) in %d ms",
+        score, drug_verified, drug_total, len(interactions), latency_ms,
     )
     return EvalResult(
         module_name="entity_verifier",

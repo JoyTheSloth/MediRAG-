@@ -50,7 +50,8 @@ _load_env()
 
 def _load_config() -> dict:
     try:
-        return yaml.safe_load(Path("config.yaml").read_text())
+        config_path = os.environ.get("MEDIRAG_CONFIG", "config_local.yaml" if Path("config_local.yaml").exists() else "config.yaml")
+        return yaml.safe_load(Path(config_path).read_text())
     except Exception:
         return {}
 
@@ -582,3 +583,78 @@ def generate_strict_answer(
         return _generate_groq(prompt, effective_config)
     else:
         raise RuntimeError(f"Unknown LLM provider '{provider}'.")
+
+
+def generate_simple_prompt(
+    prompt: str,
+    config: Optional[dict] = None,
+    overrides: Optional[dict] = None,
+) -> str:
+    """Execute a simple prompt on the active LLM provider without context formatting."""
+    if config is None:
+        config = _load_config()
+
+    effective_llm = dict(config.get("llm", {}))
+    if overrides:
+        if overrides.get("provider"):
+            effective_llm["provider"] = overrides["provider"]
+        if overrides.get("api_key"):
+            pk = (overrides.get("provider") or "gemini").lower()
+            key_map = {
+                "gemini": "gemini_api_key",
+                "openai": "openai_api_key",
+                "mistral": "mistral_api_key",
+                "groq": "groq_api_key",
+            }
+            effective_llm[key_map.get(pk, "gemini_api_key")] = overrides["api_key"]
+        if overrides.get("model"):
+            pk = (overrides.get("provider") or "gemini").lower()
+            model_map = {
+                "gemini": "gemini_model",
+                "openai": "openai_model",
+                "mistral": "model",
+                "groq": "groq_model",
+            }
+            effective_llm[model_map.get(pk, "gemini_model")] = overrides["model"]
+        if overrides.get("ollama_url"):
+            effective_llm["base_url"] = overrides["ollama_url"]
+
+    effective_config = {**config, "llm": effective_llm}
+    provider = effective_llm.get("provider", "gemini").lower()
+
+    if provider == "gemini":
+        return _generate_gemini(prompt, effective_config)
+    elif provider == "openai":
+        return _generate_openai(prompt, effective_config)
+    elif provider == "ollama":
+        return _generate_ollama(prompt, effective_config)
+    elif provider == "mistral":
+        return _generate_mistral(prompt, effective_config)
+    elif provider == "groq":
+        return _generate_groq(prompt, effective_config)
+    else:
+        raise RuntimeError(f"Unknown LLM provider '{provider}'.")
+
+
+def translate_hinglish_to_english(
+    question: str,
+    config: Optional[dict] = None,
+    overrides: Optional[dict] = None,
+) -> str:
+    """Translate clinical query from Hinglish or standard Hindi to professional English."""
+    prompt = (
+        "You are an expert bilingual clinical query translator. You will receive a medical question "
+        "written in Hinglish (a mixture of Hindi and English written in the Latin alphabet) or standard Hindi. "
+        "Convert the Hinglish/Hindi question into a clear, professional, grammatically correct English clinical query. "
+        "If the input query is already completely in English, return it exactly as it is with no edits. "
+        "Do NOT add any conversational preamble, greetings, explanation, or formatting. Only return the translated English query.\n\n"
+        f"Query: {question}\n"
+        "English Translation:"
+    )
+    try:
+        translated = generate_simple_prompt(prompt, config=config, overrides=overrides)
+        return translated.strip().strip('"').strip("'")
+    except Exception as exc:
+        logger.warning("Hinglish translation failed: %s. Using original query.", exc)
+        return question
+

@@ -48,6 +48,9 @@ IGNORE_PATTERNS = [
     ".env",
     ".idea/**",
     ".vscode/**",
+    # Local-only deployment files
+    "Dockerfile.local",
+    "config_local.yaml",
 ]
 
 print(f"Uploading backend source to HF Space: {repo_id}")

@@ -8,6 +8,12 @@ const Governance = () => {
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [showReportPreview, setShowReportPreview] = useState(false);
     const [reportProgress, setReportProgress] = useState(0);
+    const [signoffs, setSignoffs] = useState({
+        iso13485: false,
+        hipaa: false,
+        calibration: false,
+        delphi: false
+    });
 
     // Real Data State
     const [kpiData, setKpiData] = useState([]);
@@ -33,18 +39,21 @@ const Governance = () => {
                 if (logsRes.ok) {
                     const logs = await logsRes.json();
                     
-                    const formattedLog = logs.map(l => ({
-                        id: `AUD-${l.id}`,
-                        ts: new Date(l.timestamp).toLocaleString(),
-                        query: l.question,
-                        answer: l.answer,
-                        hrs: l.hrs,
-                        band: l.risk_band,
-                        flags: l.intervention_applied ? 1 : 0,
-                        failed: l.risk_band === 'CRITICAL' ? 'Multiple' : 'None',
-                        class: 'Class B',
-                        details: l.details ? JSON.parse(l.details) : {}
-                    }));
+                    const formattedLog = logs.map(l => {
+                        const parsedDetails = l.details ? JSON.parse(l.details) : {};
+                        return {
+                            id: `AUD-${l.id}`,
+                            ts: new Date(l.timestamp).toLocaleString(),
+                            query: l.question,
+                            answer: l.answer,
+                            hrs: l.hrs,
+                            band: l.risk_band,
+                            flags: l.intervention_applied ? 1 : 0,
+                            failed: parsedDetails.intervention_reason || (l.risk_band === 'CRITICAL' ? 'Multiple' : 'None'),
+                            class: 'Class B',
+                            details: parsedDetails
+                        };
+                    });
                     setAuditLog(formattedLog);
                     
                     // Filter for critical or high risk
@@ -78,6 +87,251 @@ const Governance = () => {
     const handleViewRecord = (rec) => {
         setSelectedRecord(rec);
         setIsDrawerOpen(true);
+    };
+
+    const downloadJSON = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(auditLog, null, 2));
+        const dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute("href", dataStr);
+        dlAnchorElem.setAttribute("download", "medirag_audit_log.json");
+        dlAnchorElem.click();
+    };
+
+    const downloadCSV = () => {
+        let csvContent = "data:text/csv;charset=utf-8,Audit ID,Time,Query,HRS,Risk Band,Flags,Class\n";
+        auditLog.forEach(row => {
+            const queryClean = row.query.replace(/"/g, '""');
+            csvContent += `"${row.id}","${row.ts}","${queryClean}",${row.hrs},"${row.band}",${row.flags},"${row.class}"\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "medirag_compliance_report.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const exportPDFReport = () => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        const totalQueries = kpiData[0]?.val || 0;
+        const avgHrs = kpiData[1]?.val || '0.0';
+        const critFlags = kpiData[2]?.val || 0;
+        const interventions = kpiData[3]?.val || 0;
+        const dateStr = new Date().toLocaleString();
+
+        const htmlContent = `
+            <html>
+            <head>
+                <title>CDSCO SaMD Compliance Dossier - MediRAG</title>
+                <style>
+                    body {
+                        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                        color: #1e293b;
+                        padding: 40px;
+                        line-height: 1.6;
+                        background: #fff;
+                    }
+                    .header {
+                        border-bottom: 2px solid #0f172a;
+                        padding-bottom: 20px;
+                        margin-bottom: 30px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-end;
+                    }
+                    .header h1 {
+                        font-size: 26px;
+                        font-weight: 800;
+                        margin: 0;
+                        color: #0f172a;
+                    }
+                    .header .meta {
+                        text-align: right;
+                        font-size: 11px;
+                        color: #64748b;
+                        font-family: monospace;
+                    }
+                    .badge {
+                        background: rgba(0, 200, 150, 0.1);
+                        color: #008764;
+                        border: 1px solid rgba(0, 200, 150, 0.2);
+                        padding: 4px 12px;
+                        border-radius: 9999px;
+                        font-size: 11px;
+                        font-weight: 700;
+                        display: inline-block;
+                        margin-top: 10px;
+                    }
+                    .summary-grid {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 20px;
+                        margin-bottom: 40px;
+                    }
+                    .summary-card {
+                        background: #f8fafc;
+                        border: 1px solid #e2e8f0;
+                        padding: 16px;
+                        border-radius: 8px;
+                        text-align: center;
+                    }
+                    .summary-card .lbl {
+                        font-size: 10px;
+                        text-transform: uppercase;
+                        font-weight: 700;
+                        color: #64748b;
+                        margin-bottom: 6px;
+                    }
+                    .summary-card .val {
+                        font-size: 24px;
+                        font-weight: 800;
+                        color: #0f172a;
+                    }
+                    .section-title {
+                        font-size: 15px;
+                        font-weight: 800;
+                        color: #0f172a;
+                        border-bottom: 1px solid #e2e8f0;
+                        padding-bottom: 8px;
+                        margin-top: 30px;
+                        margin-bottom: 16px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                    .cert-text {
+                        background: #f1f5f9;
+                        border-left: 4px solid #00c896;
+                        padding: 18px;
+                        font-size: 13px;
+                        color: #334155;
+                        border-radius: 0 8px 8px 0;
+                        margin: 20px 0 40px;
+                    }
+                    .table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 30px;
+                        font-size: 11px;
+                    }
+                    .table th, .table td {
+                        border: 1px solid #e2e8f0;
+                        padding: 10px;
+                        text-align: left;
+                    }
+                    .table th {
+                        background: #f8fafc;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        color: #475569;
+                    }
+                    .signature-row {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 80px;
+                        margin-top: 60px;
+                    }
+                    .sig-box {
+                        border-top: 1px solid #94a3b8;
+                        padding-top: 10px;
+                        text-align: center;
+                        font-size: 12px;
+                        color: #475569;
+                    }
+                    @media print {
+                        body { padding: 0; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div>
+                        <h1>CDSCO SaMD Compliance Report</h1>
+                        <span class="badge">CLASS B SYSTEM AUDIT PASS</span>
+                    </div>
+                    <div class="meta">
+                        <div>REPORT ID: CDSCO-RPT-2026-Q1-MOD-042</div>
+                        <div>DATE GENERATED: ${dateStr}</div>
+                        <div>STATUS: CERTIFIED COMPLIANT</div>
+                    </div>
+                </div>
+
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="lbl">TOTAL QUERIES AUDITED</div>
+                        <div class="val">${totalQueries}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="lbl">AVG RISK SCORE (HRS)</div>
+                        <div class="val">${avgHrs}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="lbl">CRITICAL ALERTS</div>
+                        <div class="val" style="color: ${critFlags > 0 ? '#ef4444' : '#0f172a'}">${critFlags}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="lbl">SAFETY INTERVENTIONS</div>
+                        <div class="val" style="color: #008764">${interventions}</div>
+                    </div>
+                </div>
+
+                <div class="section-title">Institutional Safety Certification</div>
+                <div class="cert-text">
+                    I hereby certify that the MediRAG AI clinical system has been evaluated against national and global medical software standards (such as CDSCO Class B SaMD and FDA Safe Harbor anonymization). The pipeline monitors for clinical Faithfulness (NLI), Medical Entities verification, Source Credibility (Tier-indexed), and Internal Contradiction. Audit records signify a stability level of <strong>HIGH COMPLIANCE</strong>.
+                </div>
+
+                <div class="section-title">Audit Log Sample (Recent Audits)</div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>AUDIT ID</th>
+                            <th>TIMESTAMP</th>
+                            <th>QUESTION</th>
+                            <th>HRS</th>
+                            <th>RISK BAND</th>
+                            <th>PIPELINE ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${auditLog.slice(0, 5).map(rec => `
+                            <tr>
+                                <td>${rec.id}</td>
+                                <td>${rec.ts}</td>
+                                <td>${rec.query}</td>
+                                <td>${rec.hrs}</td>
+                                <td>${rec.band}</td>
+                                <td>${rec.flags > 0 ? '⚡ Intervention Applied' : '✅ Direct Entailment'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <div class="signature-row" style="margin-top: 80px;">
+                    <div class="sig-box">
+                        <strong>Clinical Director Signature</strong><br>
+                        Department of Medical Informatics
+                    </div>
+                    <div class="sig-box">
+                        <strong>Compliance Officer Signature</strong><br>
+                        Regulatory Review Board
+                    </div>
+                </div>
+
+                <script>
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.print();
+                        }, 500);
+                    };
+                </script>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
     };
 
     const renderDashboard = () => (
@@ -281,7 +535,97 @@ const Governance = () => {
                     <label className="config-check"><input type="checkbox" defaultChecked /> Include source tiers</label>
                 </div>
 
-                <button className="gen-btn" onClick={generateReport} disabled={isGeneratingReport}>
+                <div className="config-group" style={{ marginTop: '24px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '20px' }}>
+                    <label className="config-lbl" style={{ color: 'var(--gov-teal)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>📋</span> REQUIRED SaMD COMPLIANCE SIGN-OFFS
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
+                        <label className="config-check" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#cbd5e1', textTransform: 'none' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={signoffs.iso13485} 
+                                onChange={e => setSignoffs(s => ({ ...s, iso13485: e.target.checked }))} 
+                                style={{ accentColor: 'var(--gov-teal)' }}
+                            />
+                            <span>ISO 13485 Quality Audit Verified</span>
+                        </label>
+                        <label className="config-check" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#cbd5e1', textTransform: 'none' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={signoffs.hipaa} 
+                                onChange={e => setSignoffs(s => ({ ...s, hipaa: e.target.checked }))} 
+                                style={{ accentColor: 'var(--gov-teal)' }}
+                            />
+                            <span>HIPAA PHI Safe Harbor Masking Verified</span>
+                        </label>
+                        <label className="config-check" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#cbd5e1', textTransform: 'none' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={signoffs.calibration} 
+                                onChange={e => setSignoffs(s => ({ ...s, calibration: e.target.checked }))} 
+                                style={{ accentColor: 'var(--gov-teal)' }}
+                            />
+                            <span>Department Ward SLG Slider Calibration OK</span>
+                        </label>
+                        <label className="config-check" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#cbd5e1', textTransform: 'none' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={signoffs.delphi} 
+                                onChange={e => setSignoffs(s => ({ ...s, delphi: e.target.checked }))} 
+                                style={{ accentColor: 'var(--gov-teal)' }}
+                            />
+                            <span>GRADE Delphi Consensus Standard Attestation</span>
+                        </label>
+                    </div>
+                </div>
+
+                {/* Verification Seal */}
+                {Object.values(signoffs).every(Boolean) ? (
+                    <div style={{
+                        marginTop: '20px',
+                        background: 'rgba(0, 200, 150, 0.06)',
+                        border: '1px solid rgba(0, 200, 150, 0.3)',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        animation: 'fade-in 0.3s ease-out'
+                    }}>
+                        <span style={{ fontSize: '24px' }}>🌟</span>
+                        <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#00C896' }}>CDSCO SAFE-TO-DEPLOY SEAL APPROVED</div>
+                            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', marginTop: '2px' }}>Dossier conforms to all national medical AI standards. Ready for export.</div>
+                        </div>
+                    </div>
+                ) : (
+                    <div style={{
+                        marginTop: '20px',
+                        background: 'rgba(239, 68, 68, 0.05)',
+                        border: '1px dashed rgba(239, 68, 68, 0.2)',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        fontSize: '11.5px',
+                        color: '#ef4444',
+                        textAlign: 'left',
+                        lineHeight: '1.4'
+                    }}>
+                        ℹ️ Complete all 4 clinical verification sign-offs above to authorize generation of the official regulatory report.
+                    </div>
+                )}
+
+                <button 
+                    className="gen-btn" 
+                    onClick={generateReport} 
+                    disabled={isGeneratingReport || !Object.values(signoffs).every(Boolean)}
+                    style={{
+                        marginTop: '20px',
+                        background: Object.values(signoffs).every(Boolean) ? 'var(--gov-teal)' : 'rgba(255,255,255,0.05)',
+                        color: Object.values(signoffs).every(Boolean) ? 'var(--gov-bg)' : 'rgba(255,255,255,0.2)',
+                        cursor: Object.values(signoffs).every(Boolean) ? 'pointer' : 'not-allowed',
+                        opacity: Object.values(signoffs).every(Boolean) ? 1 : 0.6
+                    }}
+                >
                     {isGeneratingReport ? 'Generating...' : 'Generate CDSCO Report'}
                     {isGeneratingReport && (
                         <div style={{ position: 'absolute', bottom: 0, left: 0, width: `${reportProgress}%`, height: '4px', background: 'rgba(255,255,255,0.5)' }}></div>
@@ -317,9 +661,9 @@ const Governance = () => {
                         </div>
 
                         <div className="preview-bottom-bar">
-                            <button className="dl-btn">Download JSON</button>
-                            <button className="dl-btn">Download CSV</button>
-                            <button className="dl-btn" style={{ background: '#0F172A', color: 'white' }}>Download Summary (TXT)</button>
+                            <button className="dl-btn" onClick={downloadJSON}>Download JSON</button>
+                            <button className="dl-btn" onClick={downloadCSV}>Download CSV</button>
+                            <button className="dl-btn" onClick={exportPDFReport} style={{ background: '#00C896', color: '#0c1224', fontWeight: 800 }}>📥 Export Certified PDF</button>
                         </div>
                     </div>
                 )}

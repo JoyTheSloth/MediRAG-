@@ -1,0 +1,69 @@
+retrieval:
+  top_k: 5
+  chunk_size: 512
+  chunk_overlap: 50
+  embedding_model: dmis-lab/biobert-v1.1
+  index_path: data/index/faiss.index
+  metadata_path: data/index/metadata_store.pkl
+  use_local_dataset: true
+
+modules:
+  faithfulness:
+    nli_model: cnut1648/biolinkbert-mednli
+    entailment_threshold: 0.75
+    max_nli_tokens: 510
+    truncate_side: left          # keep END of context (clinical values appear last)
+    deberta_batch_size: 4        # Colab T4: safe at 8 | CPU 16GB: use 2 | OOM: system retries at 1
+  entity_verifier:
+    spacy_model: en_ner_bc5cdr_md
+    critical_entity_types: [DRUG, DOSAGE]
+    dosage_tolerance_pct: 10     # >10% numerical difference → CRITICAL
+    rxnorm_api_url: https://rxnav.nlm.nih.gov/REST/approximateTerm.json
+    rxnorm_api_timeout_s: 3
+    rxnorm_cache_path: data/rxnorm_cache.csv
+  source_credibility:
+    method: keyword              # "keyword" = demo (FR-11a) | "metadata" = May (FR-11b)
+  contradiction:
+    nli_model: cnut1648/biolinkbert-mednli   # same model as faithfulness — load once
+    confidence_threshold: 0.75
+    max_sentence_pairs: 45       # skip if N > 10 sentences, check adjacent + (first,last)
+    deberta_batch_size: 4
+
+aggregator:
+  weights:
+    faithfulness: 0.35
+    entity_accuracy: 0.20
+    source_credibility: 0.20
+    contradiction_risk: 0.15
+    ragas_composite: 0.10
+  risk_bands:
+    low: [0, 30]
+    moderate: [31, 60]
+    high: [61, 85]
+    critical: [86, 100]
+
+llm:
+  provider: mistral
+  gemini_api_key: ${GEMINI_API_KEY}
+  mistral_api_key: ${MISTRAL_API_KEY}
+  groq_api_key: ${GROQ_API_KEY}
+  model: mistral-large-latest
+  gemini_model: gemini-2.0-flash
+  groq_model: llama-3.3-70b-versatile
+  base_url: http://localhost:11434
+  timeout_seconds: 120
+  judge_temperature: 0.0
+  generation_temperature: 0.7
+
+api:
+  host: 0.0.0.0
+  port: 8000
+  max_query_length: 500
+  max_answer_length: 2000
+  max_chunks: 10
+  max_chunk_length: 2000
+
+logging:
+  level: INFO                    # set to WARNING on demo day
+  file: logs/medirag.log
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"

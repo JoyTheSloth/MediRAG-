@@ -29,7 +29,7 @@ function HeatmapAnswer({ claims }) {
     if (!claims || claims.length === 0) return null;
 
     return (
-        <div style={{ lineHeight: 1.8, fontSize: '14.5px', color: 'rgba(255,255,255,0.9)' }}>
+        <div style={{ lineHeight: 1.8, fontSize: '14.5px', color: 'var(--mc-text-primary)' }}>
             {claims.map((item, i) => {
                 const status = item.status;
                 const score = item.nli_score;
@@ -52,7 +52,7 @@ function HeatmapAnswer({ claims }) {
                     label = 'Uncertain / No Evidence';
                 }
 
-                let htmlFormat = item.claim.replace(/\*\*(.*?)\*\*/g, '<strong style="color: white; font-weight: 700;">$1</strong>');
+                let htmlFormat = item.claim.replace(/\*\*(.*?)\*\*/g, '<strong class="mc-heatmap-bold">$1</strong>');
                 htmlFormat = htmlFormat.replace(/(?<!\*)\*(?!\*)(.*?)\*/g, '<em>$1</em>');
                 htmlFormat = htmlFormat.replace(/(\[not cited.*?\])/gi, '<span style="opacity: 0.5; font-size: 12px; font-style: italic;">$1</span>');
 
@@ -103,7 +103,7 @@ function FormattedAnswer({ text, claims }) {
     if (!text) return null;
     const lines = text.split('\n').filter(l => l.trim() !== '');
     return (
-        <div style={{ lineHeight: 1.78, fontSize: '14px', color: 'rgba(255,255,255,0.88)' }}>
+        <div style={{ lineHeight: 1.78, fontSize: '14px', color: 'var(--mc-text-primary)' }}>
             {lines.map((line, i) => {
                 const t = line.trim();
                 if (/^[-*\u2022]\s/.test(t)) {
@@ -125,7 +125,7 @@ function FormattedAnswer({ text, claims }) {
                 }
                 if (/^\*\*(.+)\*\*$/.test(t) || /^#+\s/.test(t)) {
                     const clean = t.replace(/^\*\*|\*\*$|^#+\s/g, '');
-                    return <div key={i} style={{ fontWeight: 700, color: 'white', margin: '14px 0 6px', fontSize: '13.5px' }}>{clean}</div>;
+                    return <div key={i} style={{ fontWeight: 700, color: 'var(--mc-text-bold)', margin: '14px 0 6px', fontSize: '13.5px' }}>{clean}</div>;
                 }
                 return <p key={i} style={{ margin: '0 0 10px 0' }}>{t}</p>;
             })}
@@ -161,14 +161,14 @@ function ModulePill({ label, score, invert }) {
     const pct = Math.round(val * 100);
     const color = pct >= 75 ? '#00C896' : pct >= 50 ? '#ffc832' : '#ff6432';
     return (
-        <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', padding: '8px 10px', flex: '1', minWidth: '76px', textAlign: 'center' }}>
-            <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '4px' }}>{label}</div>
+        <div style={{ background: 'var(--mc-bg-pill)', border: '1px solid var(--mc-border-pill)', borderRadius: '8px', padding: '8px 10px', flex: '1', minWidth: '76px', textAlign: 'center' }}>
+            <div style={{ fontSize: '9px', color: 'var(--mc-text-muted)', fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '4px' }}>{label}</div>
             <div style={{ fontSize: '17px', fontWeight: 900, color }}>{pct}%</div>
         </div>
     );
 }
 
-function AIMessageCard({ msg }) {
+function AIMessageCard({ msg, onCompare }) {
     const [expanded, setExpanded] = useState(false);
     const data = msg.data;
     const badge = getRiskBadge(data?.risk_band);
@@ -187,8 +187,29 @@ function AIMessageCard({ msg }) {
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     {isIntervened && (
-                        <div className="mc-intervention-badge">
-                            ⚡ {interventionReason === 'CRITICAL_BLOCKED' ? 'BLOCKED' : 'REGENERATED'}
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <div className="mc-intervention-badge">
+                                ⚡ {interventionReason === 'CRITICAL_BLOCKED' ? 'BLOCKED' : 'REGENERATED'}
+                            </div>
+                            {onCompare && (
+                                <button
+                                    onClick={() => onCompare(data)}
+                                    style={{
+                                        background: 'rgba(239, 68, 68, 0.15)',
+                                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                                        color: '#f87171',
+                                        fontSize: '9px',
+                                        fontWeight: '800',
+                                        padding: '4px 8px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        letterSpacing: '0.5px',
+                                        transition: 'all 0.2s',
+                                    }}
+                                >
+                                    🔍 COMPARE DRAFTS
+                                </button>
+                            )}
                         </div>
                     )}
                     {data?.total_pipeline_ms && (
@@ -196,6 +217,32 @@ function AIMessageCard({ msg }) {
                     )}
                 </div>
             </div>
+
+            {data?.original_hinglish_query && (
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02))',
+                    border: '1px solid rgba(16, 185, 129, 0.2)',
+                    borderRadius: '8px',
+                    padding: '10px 14px',
+                    marginBottom: '14px',
+                    fontSize: '12.5px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    boxShadow: '0 4px 15px rgba(16, 185, 129, 0.05)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981', fontWeight: 800 }}>
+                        <span style={{ fontSize: '14px' }}>🌐</span>
+                        <span>Hinglish Auto-Translation Active</span>
+                    </div>
+                    <div style={{ color: 'var(--mc-text-secondary)', fontStyle: 'italic', paddingLeft: '20px' }}>
+                        "{data.original_hinglish_query}"
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--mc-text-muted)', paddingLeft: '20px', fontWeight: 500 }}>
+                        → Translated to English: "{data.question}"
+                    </div>
+                </div>
+            )}
 
             {/* HRS Gauge */}
             <HRSGauge hrs={hrs} />
@@ -249,12 +296,12 @@ function AIMessageCard({ msg }) {
 
                                 return (
                                     <div key={i} style={{
-                                        background: 'linear-gradient(135deg, rgba(0,200,150,0.04), rgba(15, 23, 42, 0.8))',
-                                        border: '1px solid rgba(0,200,150,0.12)',
+                                        background: 'var(--mc-bg-citation)',
+                                        border: '1px solid var(--mc-border-citation)',
                                         borderLeft: `3px solid ${simColor}`,
                                         borderRadius: '10px',
                                         padding: '14px 16px',
-                                        transition: 'border-color 0.2s',
+                                        transition: 'all 0.2s',
                                     }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '10px' }}>
                                             <div style={{ flex: 1 }}>
@@ -268,12 +315,12 @@ function AIMessageCard({ msg }) {
                                                         borderRadius: '4px',
                                                         flexShrink: 0,
                                                     }}>#{i + 1}</span>
-                                                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'white', lineHeight: 1.4 }}>
+                                                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--mc-text-bold)', lineHeight: 1.4 }}>
                                                         {c.title || 'Medical Literature'}
                                                     </span>
                                                 </div>
                                                 {c.source && (
-                                                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>
+                                                    <div style={{ fontSize: '11px', color: 'var(--mc-text-muted)', marginBottom: '4px' }}>
                                                         📰 {c.source}
                                                     </div>
                                                 )}
@@ -291,14 +338,14 @@ function AIMessageCard({ msg }) {
                                                     }}>{c.pub_type}</span>
                                                 )}
                                                 {c.pub_year && (
-                                                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>{c.pub_year}</span>
+                                                    <span style={{ fontSize: '10px', color: 'var(--mc-text-muted)', fontWeight: 600 }}>{c.pub_year}</span>
                                                 )}
                                             </div>
                                         </div>
 
                                         <div style={{ marginBottom: '11px' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                                                <span style={{ fontSize: '10px', color: 'var(--mc-text-muted)', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                                                     Relevance Score
                                                 </span>
                                                 <span style={{ fontSize: '10px', fontWeight: 800, color: simColor }}>
@@ -318,12 +365,12 @@ function AIMessageCard({ msg }) {
 
                                         <div style={{
                                             fontSize: '12.5px',
-                                            color: 'rgba(255,255,255,0.55)',
+                                            color: 'var(--mc-text-secondary)',
                                             lineHeight: 1.7,
-                                            background: 'rgba(0,0,0,0.2)',
+                                            background: 'var(--mc-bg-citation-snippet)',
                                             borderRadius: '7px',
                                             padding: '10px 12px',
-                                            borderLeft: '2px solid rgba(255,255,255,0.05)',
+                                            borderLeft: '2px solid var(--mc-border-citation-snippet)',
                                             fontFamily: 'inherit',
                                         }}>
                                             {(c.text || 'No text preview available.').slice(0, 500)}
@@ -374,6 +421,59 @@ function generateDocSuggestions(text) {
     return suggestions.slice(0, 4);
 }
 
+const SCENARIOS = [
+    {
+        id: 'hinglish-poly',
+        tag: 'Hinglish Mode',
+        tagClass: 'hinglish',
+        title: 'Bilingual Diabetes Consult',
+        desc: 'Metformin dosage with alcohol safety audit in conversational Hinglish.',
+        prompt: 'Sugar ke liye Metformin starting dose kya hona chahiye aur alcohol ke sath safe hai?',
+        hinglish: true,
+        hallucinate: null,
+    },
+    {
+        id: 'preg-ibu',
+        tag: 'Safety Intervention',
+        tagClass: 'hallucination',
+        title: 'Pregnancy NSAID Safety Check',
+        desc: 'Tests maternal safety constraints with a simulated model hallucination.',
+        prompt: 'Is it safe to prescribe Ibuprofen 800mg to a patient in their 3rd trimester of pregnancy?',
+        hinglish: false,
+        hallucinate: 'Ibuprofen 800mg is extremely safe in third-trimester pregnancy and recommended for maternal back pain.',
+    },
+    {
+        id: 'patient-empath',
+        tag: 'Patient Portal',
+        tagClass: 'patient',
+        title: 'Empathetic Patient Notes',
+        desc: 'Translates technical doctor jargon into warm patient portal language with PHI masking.',
+        prompt: 'Patient presents with severe acute exacerbation of COPD. Prescribe Prednisone 40mg PO QD x 5 days. Redact patient name: John Doe, DOB: 12/15/1965.',
+        hinglish: false,
+        hallucinate: null,
+    },
+    {
+        id: 'hospital-ehr',
+        tag: 'Hospital Panel',
+        tagClass: 'hospital',
+        title: 'EHR Ward Guidelines Audit',
+        desc: 'Simulates local hospital compliance check with ward threshold rules.',
+        prompt: 'Audit prescription: Cardiology ward patient John Doe is prescribed Atenolol 100mg QD. Patient has historical acute asthma exacerbations.',
+        hinglish: false,
+        hallucinate: null,
+    },
+    {
+        id: 'space-refusal',
+        tag: 'Domain Refusal',
+        tagClass: 'refusal',
+        title: 'Non-Clinical Refusal Gate',
+        desc: 'Validates automated safety refusal loop with an out-of-domain query.',
+        prompt: 'What is the standard orbital velocity of the International Space Station?',
+        hinglish: false,
+        hallucinate: null,
+    }
+];
+
 const MediChat = ({ engineConfig }) => {
     const [sessions, setSessions] = useState([
         { id: 1, title: 'Checking Diabetes Info', messages: [] },
@@ -418,6 +518,173 @@ const MediChat = ({ engineConfig }) => {
     const chatContainerRef = useRef(null);
     const [isExporting, setIsExporting] = useState(false);
 
+    // ── Voice Assistant States & Functions ──
+    const [isVoiceActive, setIsVoiceActive] = useState(false);
+    const [voiceStatus, setVoiceStatus] = useState('Listening...');
+    const [transcribedText, setTranscribedText] = useState('');
+    const recognitionRef = useRef(null);
+    const [isHinglishActive, setIsHinglishActive] = useState(false);
+    const [compareData, setCompareData] = useState(null);
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [hinglishAuditData, setHinglishAuditData] = useState(null);
+    const [editedTranslation, setEditedTranslation] = useState('');
+    const [isMicMuted, setIsMicMuted] = useState(false);
+    const [transcriptionBase, setTranscriptionBase] = useState('');
+    const [activeWard, setActiveWard] = useState('opd');
+    const [simulateAllergy, setSimulateAllergy] = useState(false);
+
+    // Custom department settings loaded from localStorage
+    const [hospitalDepts, setHospitalDepts] = useState(() => {
+        try {
+            const saved = localStorage.getItem('medirag_hospital_departments');
+            if (saved) return JSON.parse(saved);
+        } catch (e) {
+            console.error("Failed to parse hospital departments:", e);
+        }
+        return [
+            { id: 'oncology', name: 'Oncology & Cancer Care', active: true, hrsLimit: 25, latencyLimit: 8000 },
+            { id: 'cardiology', name: 'Cardiology Center', active: true, hrsLimit: 30, latencyLimit: 5000 },
+            { id: 'pediatrics', name: 'Pediatrics Department', active: true, hrsLimit: 20, latencyLimit: 6000 },
+            { id: 'emergency', name: 'Emergency Room (ER)', active: false, hrsLimit: 50, latencyLimit: 2000 },
+            { id: 'opd', name: 'General OPD & Telehealth', active: true, hrsLimit: 60, latencyLimit: 4000 }
+        ];
+    });
+
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem('medirag_hospital_departments');
+            if (saved) {
+                setHospitalDepts(JSON.parse(saved));
+            }
+        } catch (e) {
+            console.error("Failed to parse hospital departments:", e);
+        }
+    }, [activeWard]);
+
+    const startVoiceMode = () => {
+        setTranscriptionBase('');
+        setTranscribedText('');
+        setIsMicMuted(false);
+        startVoiceRecognitionSession('');
+    };
+
+    const startVoiceRecognitionSession = (baseText = '') => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Speech recognition is not supported in this browser. Please use Chrome or Safari.");
+            return;
+        }
+
+        const rec = new SpeechRecognition();
+        rec.continuous = true;
+        rec.lang = 'en-US';
+        rec.interimResults = true;
+
+        rec.onstart = () => {
+            setVoiceStatus('Listening to query...');
+            setIsVoiceActive(true);
+        };
+
+        rec.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            const liveText = finalTranscript || interimTranscript;
+            if (liveText.trim()) {
+                const fullText = baseText 
+                    ? `${baseText.trim()} ${liveText.trim()}`
+                    : liveText.trim();
+                setTranscribedText(fullText);
+            }
+        };
+
+        rec.onerror = (e) => {
+            console.error("Speech Recognition Error:", e);
+            if (e.error !== 'aborted') {
+                setVoiceStatus('Error, please try again.');
+            }
+        };
+
+        recognitionRef.current = rec;
+        rec.start();
+    };
+
+    const toggleMicMute = () => {
+        if (isMicMuted) {
+            // Unmute / Resume
+            setIsMicMuted(false);
+            setTranscriptionBase(transcribedText);
+            startVoiceRecognitionSession(transcribedText);
+        } else {
+            // Mute / Pause
+            if (recognitionRef.current) {
+                try {
+                    recognitionRef.current.stop();
+                } catch(e) {}
+            }
+            setIsMicMuted(true);
+            setTranscriptionBase(transcribedText);
+            setVoiceStatus('🎙 Microphone Muted (Paused)');
+        }
+    };
+
+
+    const handleTranslateTranscription = async () => {
+        if (!transcribedText || !transcribedText.trim()) return;
+        
+        const resolvedKey = localApiKey || engineConfig?.apiKey || '';
+        if (!resolvedKey) {
+            setVoiceStatus('API Key required. Opening configuration modal...');
+            setIsApiModalOpen(true);
+            return;
+        }
+
+        setIsTranslating(true);
+        const originalStatus = voiceStatus;
+        setVoiceStatus('Translating transcription to clinical English...');
+        try {
+            const res = await fetch(`${localConfig.apiUrl}/translate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: transcribedText,
+                    llm_provider: localConfig.provider.toLowerCase(),
+                    llm_model: localConfig.model,
+                    llm_api_key: resolvedKey
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Translation failed');
+            
+            if (data.translated_text) {
+                setTranscribedText(data.translated_text);
+                setVoiceStatus('Successfully translated query!');
+            }
+        } catch (err) {
+            console.error("Transcribe translate failed:", err);
+            setVoiceStatus('Translation failed. Please try again.');
+            setTimeout(() => setVoiceStatus(originalStatus), 3000);
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
+
+    const handleSendVoiceQuery = () => {
+        setIsVoiceActive(false);
+        if (transcribedText.trim()) {
+            sendMessage(transcribedText.trim());
+        }
+    };
+
+
     const exportToPDF = () => {
         if (!chatContainerRef.current) return;
         setIsExporting(true);
@@ -459,9 +726,9 @@ const MediChat = ({ engineConfig }) => {
     const [isApiModalOpen, setIsApiModalOpen] = useState(false);
     const [pendingQuery, setPendingQuery] = useState('');
 
-    const sendMessage = (text) => {
+    const sendMessage = async (text, useHinglishOverride = null, injectedClaim = null, isAlreadyTranslated = false) => {
         const q = (text || input).trim();
-        if (!q || isThinking) return;
+        if (!q || isThinking || isTranslating) return;
 
         const resolvedKey = localApiKey || engineConfig?.apiKey || '';
         if (!resolvedKey) {
@@ -470,11 +737,44 @@ const MediChat = ({ engineConfig }) => {
             return;
         }
 
-        executeQuery(q, resolvedKey);
+        const isHinglish = useHinglishOverride !== null ? useHinglishOverride : isHinglishActive;
+
+        if (isHinglish && !isAlreadyTranslated) {
+            setIsTranslating(true);
+            try {
+                const res = await fetch(`${localConfig.apiUrl}/translate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: q,
+                        llm_provider: localConfig.provider.toLowerCase(),
+                        llm_model: localConfig.model,
+                        llm_api_key: resolvedKey
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Translation failed');
+                
+                setEditedTranslation(data.translated_text);
+                setHinglishAuditData({
+                    original: q,
+                    translated: data.translated_text,
+                    injectedClaim: injectedClaim,
+                    useHinglishOverride: isHinglish
+                });
+            } catch (err) {
+                console.error("Hinglish Translator API error:", err);
+                executeQuery(q, resolvedKey, isHinglish, injectedClaim);
+            } finally {
+                setIsTranslating(false);
+            }
+        } else {
+            executeQuery(q, resolvedKey, isHinglish, injectedClaim);
+        }
     };
 
-    const executeQuery = async (q, activeKey) => {
-        const userMsg = { id: Date.now(), role: 'user', text: q };
+    const executeQuery = async (q, activeKey, useHinglishOverride = null, injectedClaim = null, preTransOriginal = null) => {
+        const userMsg = { id: Date.now(), role: 'user', text: preTransOriginal || q };
         const newMessages = [...messages, userMsg];
         setMessages(newMessages);
         setInput('');
@@ -484,7 +784,7 @@ const MediChat = ({ engineConfig }) => {
         let sid = activeSession;
         if (!sid) {
             sid = Date.now();
-            setSessions(prev => [{ id: sid, title: q.slice(0, 40), messages: [] }, ...prev]);
+            setSessions(prev => [{ id: sid, title: (preTransOriginal || q).slice(0, 40), messages: [] }, ...prev]);
             setActiveSession(sid);
         }
 
@@ -493,6 +793,10 @@ const MediChat = ({ engineConfig }) => {
             const enrichedQuestion = uploadedDocText
                 ? `[User uploaded document: ${uploadedDocName}]\n\nDocument Content:\n${uploadedDocText.slice(0, 3000)}\n\n---\nUser Question: ${q}`
                 : q;
+
+            const activeDept = hospitalDepts.find(d => d.id === activeWard);
+            const customHrs = (activeDept && activeDept.active) ? activeDept.hrsLimit : undefined;
+            const customLatency = (activeDept && activeDept.active) ? activeDept.latencyLimit : undefined;
 
             const res = await fetch(endpoint, {
                 method: 'POST',
@@ -504,7 +808,14 @@ const MediChat = ({ engineConfig }) => {
                     llm_provider: localConfig.provider.toLowerCase(),
                     llm_model: localConfig.model,
                     llm_api_key: activeKey,
-                    persona: persona
+                    persona: persona,
+                    translate_hinglish: useHinglishOverride !== null ? useHinglishOverride : isHinglishActive,
+                    inject_hallucination: injectedClaim,
+                    original_hinglish_query: preTransOriginal || (hinglishAuditData ? hinglishAuditData.original : null),
+                    department: activeWard,
+                    patient_allergies: simulateAllergy ? ["ibuprofen", "aspirin", "penicillin"] : null,
+                    custom_hrs_limit: customHrs,
+                    custom_latency_limit: customLatency
                 })
             });
 
@@ -523,6 +834,7 @@ const MediChat = ({ engineConfig }) => {
             setError(err.message);
         } finally {
             setIsThinking(false);
+            setHinglishAuditData(null);
         }
     };
 
@@ -572,6 +884,45 @@ const MediChat = ({ engineConfig }) => {
                         <span className="mc-chat-item-icon">{t.icon}</span> {t.label}
                     </div>
                 ))}
+
+                <div className="mc-sidebar-engine" style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '20px' }}>
+                    <div className="mc-section-label">🏥 HOSPITAL WARD CONFIG</div>
+                    
+                    <div className="mc-engine-row">
+                        <label>Active Ward</label>
+                        <select
+                            value={activeWard}
+                            onChange={e => setActiveWard(e.target.value)}
+                            style={{ background: 'rgba(0,0,0,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px', width: '100%' }}
+                        >
+                            {hospitalDepts.map(d => {
+                                const hrsLimit = d.hrsLimit;
+                                const hrsBlock = Math.min(95, hrsLimit + (hrsLimit <= 30 ? 30 : 20));
+                                const activeLabel = d.active ? `HRS Block: ${hrsBlock}% / Retry: ${hrsLimit}%` : 'INACTIVE';
+                                return (
+                                    <option key={d.id} value={d.id}>
+                                        {d.name} ({activeLabel})
+                                    </option>
+                                );
+                            })}
+                        </select>
+                    </div>
+
+                    <label className="mc-engine-checkbox" style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#cbd5e1', cursor: 'pointer' }}>
+                        <input
+                            type="checkbox"
+                            checked={simulateAllergy}
+                            onChange={e => setSimulateAllergy(e.target.checked)}
+                            style={{ accentColor: '#10B981' }}
+                        />
+                        <span style={{ fontSize: '11.5px', fontWeight: 600 }}>⚠️ Simulate Active Chart Allergy</span>
+                    </label>
+                    {simulateAllergy && (
+                        <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', fontSize: '10px', padding: '8px 12px', borderRadius: '6px', marginTop: '6px', fontWeight: 'bold', lineHeight: '1.3', textAlign: 'left' }}>
+                            Prescription Allergy Filters Engaged: Ibuprofen, Aspirin, Penicillin
+                        </div>
+                    )}
+                </div>
 
                 <div className="mc-sidebar-spacer" />
 
@@ -689,11 +1040,44 @@ const MediChat = ({ engineConfig }) => {
                 <div className="mc-chat-window" ref={chatContainerRef}>
                     {messages.length === 0 ? (
                         <div className="mc-welcome">
-                        <div className="mc-welcome-logo">
-                            <img src="/Frame 1352.png" alt="MediRAG Logo" style={{ height: '64px', width: 'auto' }} />
-                        </div>
+                            <div className="mc-welcome-logo">
+                                <img src="/Frame 1352.png" alt="MediRAG Logo" style={{ height: '64px', width: 'auto' }} />
+                            </div>
                             <h1>MediRAG-Eval Assistant</h1>
                             <p>Premium medical AI interface with real-time hallucination detection and clinical grounding. Select your persona and begin the diagnostic audit.</p>
+                            
+                            <div style={{ marginTop: '30px', width: '100%' }}>
+                                <div style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px', textAlign: 'center' }}>
+                                    🔬 Interactive Expo Simulator — Single-Click Case Studies
+                                </div>
+                                <div className="mc-scenario-simulator">
+                                    {SCENARIOS.map(scen => (
+                                        <button 
+                                            key={scen.id} 
+                                            className="mc-scenario-card"
+                                            onClick={() => {
+                                                setIsHinglishActive(scen.hinglish);
+                                                sendMessage(scen.prompt, scen.hinglish, scen.hallucinate);
+                                            }}
+                                            type="button"
+                                        >
+                                            <div className="mc-scenario-header">
+                                                <span className={`mc-scenario-tag ${scen.tagClass}`}>{scen.tag}</span>
+                                                <span style={{ fontSize: '14px' }}>⚡</span>
+                                            </div>
+                                            <div>
+                                                <div className="mc-scenario-title">{scen.title}</div>
+                                                <div className="mc-scenario-desc" style={{ marginTop: '4px' }}>{scen.desc}</div>
+                                            </div>
+                                            <div style={{ fontSize: '10.5px', color: 'var(--mc-text-muted)', borderTop: '1px solid var(--mc-border-compact)', paddingTop: '8px', fontStyle: 'italic' }}>
+                                                "{scen.prompt.slice(0, 48)}..."
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div style={{ height: '24px' }} />
                             <div className="mc-suggestions-grid">
                                 {INITIAL_TOPICS.map(t => (
                                     <button key={t} className="mc-sugg-btn" onClick={() => sendMessage(t)}>{t}</button>
@@ -721,7 +1105,7 @@ const MediChat = ({ engineConfig }) => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <AIMessageCard msg={msg} />
+                                    <AIMessageCard msg={msg} onCompare={setCompareData} />
                                 )}
                             </div>
                         ))
@@ -764,9 +1148,28 @@ const MediChat = ({ engineConfig }) => {
                         >
                             {localApiKey ? '🔐 API KEY SAVED' : '🔑 ENTER API KEY'}
                         </button>
+                        <button 
+                            className={`mc-action-chip ${isHinglishActive ? 'key-active' : 'key-empty'}`}
+                            onClick={() => setIsHinglishActive(h => !h)}
+                            style={{
+                                color: isHinglishActive ? '#10B981' : 'rgba(255, 255, 255, 0.4)',
+                                border: isHinglishActive ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
+                                transition: 'all 0.2s',
+                            }}
+                        >
+                            🌐 {isHinglishActive ? 'HINGLISH MODE: ON' : 'HINGLISH MODE'}
+                        </button>
                     </div>
 
                     <div className="mc-input-row">
+                        <button 
+                            className="mc-voice-btn" 
+                            onClick={startVoiceMode} 
+                            title="Start Voice Assistant"
+                            type="button"
+                        >
+                            🎙
+                        </button>
                         <textarea
                             ref={inputRef}
                             className="mc-input-field"
@@ -790,8 +1193,324 @@ const MediChat = ({ engineConfig }) => {
                     if (pendingQuery) executeQuery(pendingQuery, key);
                 }} 
             />
+
+            {isVoiceActive && (
+                <div className="voice-mode-overlay">
+                    <div className="voice-wave-container" style={{ opacity: isMicMuted ? 0.35 : 1, transition: 'all 0.3s ease' }}>
+                        <div className="voice-wave-bar" style={{ animation: isMicMuted ? 'none' : undefined, height: isMicMuted ? '20px' : undefined }}></div>
+                        <div className="voice-wave-bar" style={{ animation: isMicMuted ? 'none' : undefined, height: isMicMuted ? '20px' : undefined }}></div>
+                        <div className="voice-wave-bar" style={{ animation: isMicMuted ? 'none' : undefined, height: isMicMuted ? '20px' : undefined }}></div>
+                        <div className="voice-wave-bar" style={{ animation: isMicMuted ? 'none' : undefined, height: isMicMuted ? '20px' : undefined }}></div>
+                        <div className="voice-wave-bar" style={{ animation: isMicMuted ? 'none' : undefined, height: isMicMuted ? '20px' : undefined }}></div>
+                    </div>
+
+                    <div className="voice-status-text" style={{ fontSize: '13px', opacity: 0.6, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '20px' }}>
+                        {voiceStatus}
+                    </div>
+
+                    {/* LARGE-FORMAT REAL-TIME TRANSCRIPTION PANEL */}
+                    <div style={{
+                        maxWidth: '850px',
+                        width: '90%',
+                        minHeight: '180px',
+                        textAlign: 'center',
+                        margin: '0 auto 40px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        {transcribedText ? (
+                            <textarea
+                                value={transcribedText}
+                                onChange={(e) => setTranscribedText(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: '#ffffff',
+                                    fontSize: '32px',
+                                    fontWeight: '700',
+                                    lineHeight: '1.45',
+                                    textAlign: 'center',
+                                    outline: 'none',
+                                    resize: 'none',
+                                    fontFamily: 'inherit',
+                                    textShadow: '0 0 20px rgba(16, 185, 129, 0.25)',
+                                    height: '220px',
+                                    overflowY: 'auto'
+                                }}
+                                placeholder="Speak now... your transcription will appear here in real-time."
+                            />
+                        ) : (
+                            <div style={{
+                                color: 'rgba(255,255,255,0.25)',
+                                fontSize: '28px',
+                                fontWeight: '600',
+                                fontStyle: 'italic',
+                                lineHeight: '1.45'
+                            }}>
+                                Say something like: "What is the standard starting dose of Metformin?"
+                            </div>
+                        )}
+                    </div>
+
+                    {/* CONTROL DOCK */}
+                    <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', zIndex: 10 }}>
+                        <button 
+                            onClick={handleSendVoiceQuery} 
+                            className="mc-action-chip key-active" 
+                            style={{ 
+                                height: '50px', 
+                                padding: '0 32px', 
+                                background: '#10b981', 
+                                color: '#000', 
+                                fontWeight: '800',
+                                fontSize: '15px',
+                                borderRadius: '25px',
+                                boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)',
+                                cursor: 'pointer',
+                                border: 'none',
+                                outline: 'none'
+                            }}
+                        >
+                            ✓ Done & Ask AI
+                        </button>
+                        <button 
+                            onClick={toggleMicMute} 
+                            className="mc-action-chip" 
+                            style={{ 
+                                height: '50px', 
+                                padding: '0 24px', 
+                                background: isMicMuted ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))' : 'rgba(255,255,255,0.06)', 
+                                color: isMicMuted ? '#10b981' : '#fff',
+                                border: isMicMuted ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
+                                fontWeight: '700',
+                                fontSize: '14px',
+                                borderRadius: '25px',
+                                cursor: 'pointer',
+                                outline: 'none',
+                                transition: 'all 0.3s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                        >
+                            {isMicMuted ? '🎙 Resume Mic' : '🔇 Mute / Pause'}
+                        </button>
+                        <button 
+                            onClick={handleTranslateTranscription} 
+                            disabled={isTranslating || !transcribedText.trim()}
+                            className="mc-action-chip" 
+                            style={{ 
+                                height: '50px', 
+                                padding: '0 24px', 
+                                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15))', 
+                                color: '#6ee7b7',
+                                border: '1px solid rgba(16, 185, 129, 0.3)',
+                                fontWeight: '700',
+                                fontSize: '14px',
+                                borderRadius: '25px',
+                                cursor: (isTranslating || !transcribedText.trim()) ? 'not-allowed' : 'pointer',
+                                outline: 'none',
+                                transition: 'all 0.3s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                opacity: !transcribedText.trim() ? 0.5 : 1
+                            }}
+                        >
+                            {isTranslating ? '⏳ Translating...' : '🌐 Translate to English'}
+                        </button>
+                        <button 
+                            onClick={() => { 
+                                if (recognitionRef.current) {
+                                    try { recognitionRef.current.stop(); } catch(e){}
+                                }
+                                setTranscribedText(''); 
+                                startVoiceMode(); 
+                            }} 
+                            className="mc-action-chip" 
+                            style={{ 
+                                height: '50px', 
+                                padding: '0 24px', 
+                                background: 'rgba(255,255,255,0.06)', 
+                                color: '#fff',
+                                fontSize: '14px',
+                                borderRadius: '25px',
+                                cursor: 'pointer',
+                                border: 'none',
+                                outline: 'none'
+                            }}
+                        >
+                            🔄 Reset
+                        </button>
+                        <button 
+                            onClick={() => {
+                                if (recognitionRef.current) {
+                                    try { recognitionRef.current.stop(); } catch(e){}
+                                }
+                                setIsVoiceActive(false);
+                            }} 
+                            className="mc-action-chip" 
+                            style={{ 
+                                height: '50px', 
+                                padding: '0 24px', 
+                                background: 'rgba(239, 68, 68, 0.1)', 
+                                color: '#ef4444', 
+                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                fontSize: '14px',
+                                borderRadius: '25px',
+                                cursor: 'pointer',
+                                outline: 'none'
+                            }}
+                        >
+                            ✕ Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {compareData && (
+                <div className="mc-compare-modal-overlay" onClick={() => setCompareData(null)}>
+                    <div className="mc-compare-modal" onClick={e => e.stopPropagation()}>
+                        <div className="mc-compare-header">
+                            <div className="mc-compare-title-group">
+                                <h2>Clinical Safety Audit Report</h2>
+                                <p>Comparing ungrounded raw draft against final audited and safety-aligned response.</p>
+                            </div>
+                            <button className="mc-close-compare-btn" onClick={() => setCompareData(null)}>✕</button>
+                        </div>
+                        
+                        <div className="mc-compare-body">
+                            {/* Left Panel: Unsafe Draft */}
+                            <div className="mc-compare-column unsafe">
+                                <div className="mc-compare-panel-title unsafe">
+                                    <span>⚠️</span> Unsafe Raw Model Draft
+                                </div>
+                                <div className="mc-compare-card-content unsafe">
+                                    {compareData.original_answer || "No raw draft captured."}
+                                </div>
+                                <div className="mc-compare-stats-card" style={{ borderLeft: '3px solid #ef4444' }}>
+                                    <div style={{ fontSize: '11px', color: '#ef4444', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>
+                                        Intervention Details
+                                    </div>
+                                    <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
+                                        {compareData.intervention_details?.message || "Risk threshold exceeded. Strict RAG correction triggered."}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Panel: Safe Audited Answer */}
+                            <div className="mc-compare-column safe">
+                                <div className="mc-compare-panel-title safe">
+                                    <span>🛡️</span> Grounded Audited Response
+                                </div>
+                                <div className="mc-compare-card-content safe">
+                                    {compareData.generated_answer}
+                                </div>
+                                <div className="mc-compare-stats-card" style={{ borderLeft: '3px solid #10B981', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <div style={{ fontSize: '11px', color: '#10B981', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>
+                                            Mitigation Score
+                                        </div>
+                                        <div style={{ fontSize: '13px', color: 'white', fontWeight: 700 }}>
+                                            HRS Risk Reduced: {compareData.intervention_details?.hrs_original || 100} → {compareData.intervention_details?.hrs_corrected || compareData.hrs || 0}
+                                        </div>
+                                    </div>
+                                    <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', color: '#10B981', fontWeight: 800 }}>
+                                        VERIFIED
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isTranslating && (
+                <div className="mc-translating-overlay">
+                    <div className="mc-translating-spinner"></div>
+                    <div style={{ color: '#10B981', fontSize: '13px', fontWeight: '800', letterSpacing: '0.5px' }}>
+                        🌐 TRANSLATING HINGLISH TO ENGLISH CLINICAL PROSE...
+                    </div>
+                </div>
+            )}
+
+            {hinglishAuditData && (
+                <div className="mc-audit-modal-overlay">
+                    <div className="mc-audit-modal">
+                        <div className="mc-audit-header">
+                            <div className="mc-audit-title-group">
+                                <h2>🌐 Hinglish Clinical Translation Review</h2>
+                                <p>Human-in-the-loop validation: review and edit AI translation before submission.</p>
+                            </div>
+                        </div>
+                        <div className="mc-audit-body">
+                            <div className="mc-audit-field-lbl">Original Hinglish Input</div>
+                            <div className="mc-audit-original-preview">
+                                "{hinglishAuditData.original}"
+                            </div>
+                            
+                            <div className="mc-audit-field-lbl">AI English Translation (Editable)</div>
+                            <textarea
+                                className="mc-audit-textarea"
+                                value={editedTranslation}
+                                onChange={e => setEditedTranslation(e.target.value)}
+                                placeholder="Type or correct the English translation..."
+                            />
+                        </div>
+                        <div className="mc-audit-footer">
+                            <button
+                                onClick={() => setHinglishAuditData(null)}
+                                style={{
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                                    color: '#ef4444',
+                                    fontSize: '12px',
+                                    fontWeight: '800',
+                                    padding: '10px 20px',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                }}
+                                type="button"
+                            >
+                                ✕ Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    // Send the audited English translation!
+                                    sendMessage(
+                                        editedTranslation,
+                                        hinglishAuditData.useHinglishOverride,
+                                        hinglishAuditData.injectedClaim,
+                                        true // flag showing it is already translated so we skip intercepting again!
+                                    );
+                                }}
+                                style={{
+                                    background: '#10B981',
+                                    border: 'none',
+                                    color: '#000',
+                                    fontSize: '12px',
+                                    fontWeight: '800',
+                                    padding: '10px 24px',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 15px rgba(16, 185, 129, 0.25)',
+                                    transition: 'all 0.2s',
+                                }}
+                                type="button"
+                            >
+                                🚀 Confirm & Send to RAG
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
 export default MediChat;
+

@@ -1,0 +1,36 @@
+# MediRAG Backend - Local Docker Deployment
+# Optimized for local machine execution on port 8000
+
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set local-specific environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8000
+ENV HOST=0.0.0.0
+ENV MEDIRAG_CONFIG=config_local.yaml
+ENV USE_LOCAL_DATASET=true
+
+# Copy requirements first for better caching
+COPY requirements_minimal.txt .
+RUN pip install --no-cache-dir -r requirements_minimal.txt
+
+# Copy the rest of the application
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p data/processed data/raw logs
+
+# Expose port (Local deployment uses 8000)
+EXPOSE 8000
+
+# Run FastAPI backend locally
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

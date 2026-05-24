@@ -14,6 +14,7 @@
     --amber-accent: #F5A623;
     --orange-accent: #F97316;
     --red-accent: #EF4444;
+    --purple-accent: #8B5CF6;
     
     /* Gradients */
     --gradient-danger: linear-gradient(135deg, #EF4444, #F97316);
@@ -878,6 +879,69 @@
 [data-theme="light"] .ptag-green {
     background: #DCFCE7;
     color: #166534;
+}
+
+/* =========================================================================
+   LIGHT THEME — CONTEXT CARDS
+   ========================================================================= */
+[data-theme="light"] .context-card {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .context-card:hover {
+    background: #F8FAFC !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .context-title {
+    color: #1E293B !important;
+}
+
+[data-theme="light"] .context-subtitle {
+    color: #64748B !important;
+}
+
+[data-theme="light"] .context-desc {
+    color: #475569 !important;
+}
+
+[data-theme="light"] .green-tag {
+    background: rgba(16, 185, 129, 0.08) !important;
+    color: #059669 !important;
+}
+
+[data-theme="light"] .blue-tag {
+    background: rgba(59, 130, 246, 0.08) !important;
+    color: #2563EB !important;
+}
+
+/* =========================================================================
+   LIGHT THEME — CTA BANNER & WHITE BUTTONS
+   ========================================================================= */
+[data-theme="light"] .cta-banner {
+    background: linear-gradient(180deg, #EAECF2, rgba(16, 185, 129, 0.05), #dcfce7) !important;
+    border-top: 1px solid rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-theme="light"] .cta-banner-title {
+    color: #1A1F36 !important;
+}
+
+[data-theme="light"] .cta-banner-subtext {
+    color: #4B5563 !important;
+}
+
+[data-theme="light"] .primary-btn-white {
+    background-color: #10B981 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-theme="light"] .primary-btn-white:hover {
+    background-color: #059669 !important;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3) !important;
 }
 
 /* =========================================================================

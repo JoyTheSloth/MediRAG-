@@ -206,6 +206,14 @@ class QueryRequest(BaseModel):
         default=False,
         description="Automatically redact PHI/PII (names, IDs) before external API calls.",
     )
+    translate_hinglish: bool = Field(
+        default=False,
+        description="Translate query from Hinglish to English before processing",
+    )
+    original_hinglish_query: Optional[str] = Field(
+        default=None,
+        description="[OPTIONAL] Pre-translated original Hinglish text from the front-end audit gate."
+    )
     system_prompt: Optional[str] = Field(
         default=None,
         description="Custom system prompt to override the default clinical persona."
@@ -213,6 +221,22 @@ class QueryRequest(BaseModel):
     persona: Optional[str] = Field(
         default="physician",
         description="The target audience for the response: 'physician' or 'patient'."
+    )
+    department: Optional[str] = Field(
+        default=None,
+        description="[OPTIONAL] Active department (oncology, cardiology, pediatrics, opd, etc.) to trigger custom safety thresholds."
+    )
+    patient_allergies: Optional[list[str]] = Field(
+        default=None,
+        description="[OPTIONAL] List of patient drug allergies to scan against recommended medications."
+    )
+    custom_hrs_limit: Optional[int] = Field(
+        default=None,
+        description="[OPTIONAL] Custom HRS risk tolerance percentage (0-100) set by the hospital console."
+    )
+    custom_latency_limit: Optional[int] = Field(
+        default=None,
+        description="[OPTIONAL] Custom max allowed latency in ms."
     )
 
 
@@ -264,6 +288,7 @@ class QueryResponse(BaseModel):
     # Privacy Shield fields
     privacy_applied: bool = Field(default=False)
     privacy_details: Optional[Dict[str, Any]] = Field(default=None)
+    original_hinglish_query: Optional[str] = Field(default=None, description="The original Hinglish query before translation")
     # Coverage gap gate — distinguishes missing DB coverage from hallucination
     coverage_gap: bool = Field(
         default=False,

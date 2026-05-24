@@ -15,10 +15,11 @@ def _setup_logging() -> None:
     log_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     log_file = "logs/medirag.log"
 
-    # Try to load level from config.yaml
+    # Try to load level from config_local.yaml or config.yaml
     try:
         import yaml
-        with open("config.yaml", "r") as f:
+        config_path = os.environ.get("MEDIRAG_CONFIG", "config_local.yaml" if os.path.exists("config_local.yaml") else "config.yaml")
+        with open(config_path, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f)
         level_str = cfg.get("logging", {}).get("level", "INFO")
         log_level = getattr(logging, level_str.upper(), logging.INFO)

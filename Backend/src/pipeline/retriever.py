@@ -433,7 +433,9 @@ class Retriever:
 # ---------------------------------------------------------------------------
 
 def _load_config() -> dict:
-    with open("config.yaml", "r", encoding="utf-8") as f:
+    import os
+    config_path = os.environ.get("MEDIRAG_CONFIG", "config_local.yaml" if os.path.exists("config_local.yaml") else "config.yaml")
+    with open(config_path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

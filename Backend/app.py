@@ -44,6 +44,18 @@ except ImportError:
 
 # Download datasets using huggingface_hub
 from huggingface_hub import hf_hub_download
+import yaml
+from pathlib import Path
+
+# Check if config_local.yaml exists or USE_LOCAL_DATASET is set to skip HF downloads
+config_path = os.environ.get("MEDIRAG_CONFIG", "config_local.yaml" if Path("config_local.yaml").exists() else "config.yaml")
+try:
+    with open(config_path, "r", encoding="utf-8") as f:
+        config_data = yaml.safe_load(f)
+except Exception:
+    config_data = {}
+
+use_local_dataset = config_data.get("retrieval", {}).get("use_local_dataset", False) or os.environ.get("USE_LOCAL_DATASET", "false").lower() == "true"
 
 # Check and download index and data files
 data_dir = os.path.join(os.path.dirname(__file__), "data")
@@ -58,6 +70,10 @@ rxnorm_path = os.path.join(data_dir, "rxnorm_cache.csv")
 
 def download_dataset_files():
     """Download FAISS index and other core data from Hugging Face Dataset"""
+    if use_local_dataset:
+        logger.info("[LOCAL MODE] Bypassing Hugging Face repository download. Relying on local datasets in data/index/.")
+        return
+
     repo_id = "joytheslothh/MediRAG-Index-Data"
     token = os.environ.get("HF_TOKEN")
     if not token:
