@@ -94,12 +94,14 @@ OUTPUT FORMAT (JSON ONLY):
         clean_json = re.sub(r'```json\n?|\n?```', '', judge_raw).strip()
         judge_data = json.loads(clean_json)
         
+        agreement = judge_data.get("agreement_score", 0.5)
         return {
             "answers": answers,
-            "agreement_score": judge_data.get("agreement_score", 0.5),
+            "agreement_score": agreement,
             "conflicts": judge_data.get("conflicts", []),
             "summary": judge_data.get("summary", ""),
-            "consensus_answer": judge_data.get("recommended_consensus", list(answers.values())[0])
+            "consensus_answer": judge_data.get("recommended_consensus", list(answers.values())[0]),
+            "high_uncertainty_flag": agreement < 0.70
         }
     except Exception as e:
         logger.error("Consensus Judge failed: %s", e)

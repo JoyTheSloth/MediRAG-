@@ -188,6 +188,19 @@ def run_evaluation(
     total_ms = int((time.perf_counter() - t_start) * 1000)
     agg_result.details["total_pipeline_ms"] = total_ms
 
+    # Compute Verbosity Signal (Section 4 correlation)
+    ans_len = len(answer)
+    ans_words = len(answer.split())
+    v_level = "LOW" if ans_len < 800 else "MODERATE" if ans_len < 1400 else "HIGH"
+    v_risk = "Factual error drift risk is elevated due to excessive length (r=0.81 verbosity signal correlation)." if v_level == "HIGH" else "Answer length matches safety guidelines."
+    
+    agg_result.details["verbosity_signal"] = {
+        "char_count": ans_len,
+        "word_count": ans_words,
+        "level": v_level,
+        "risk_description": v_risk
+    }
+
     # Attach per-module results for API/dashboard access
     agg_result.details["module_results"] = {
         "faithfulness":       {"score": faith_result.score,  "details": faith_result.details},

@@ -71,17 +71,17 @@ const Home = () => {
         <div className="hero-container">
             <motion.div className="hero-left" {...fadeInLeft}>
                 <div className="badge badge-outline">
-                    <span className="shield-icon">🛡</span> Open Source · India Innovates 2026
+                    <span className="shield-icon">🛡</span> Clinical Safety Middleware Gateway · India Innovates 2026
                 </div>
                 <h1 className="main-title">
-                    Detect Medical AI<br/>
+                    Clinical Safety &<br/>
                     <span className="gradient-text-danger">
-                        <ScrambledText radius={150}>Hallucinations</ScrambledText>.
+                        <ScrambledText radius={150}>Verification</ScrambledText>
                     </span><br/>
-                    Before They Harm.
+                    Middleware Proxy.
                 </h1>
                 <p className="subheadline">
-                    MediRAG-Eval is an AI safety middleware and post-generation audit layer for RAG-based medical QA systems — scoring faithfulness, entity accuracy, source credibility, and internal consistency in under 30 seconds.
+                    MediRAG 2.0 acts as a decoupled safety gateway proxy between untrusted LLMs and clinical databases. It actively intercepts, redacts, and mathematically validates medical AI outputs in real-time.
                 </p>
                 <div className="cta-group">
                     <Link to="/chat" className="primary-btn large cursor-target" style={{textDecoration:'none', display:'inline-flex', alignItems:'center', gap:'6px'}}>Try Live Demo →</Link>
@@ -119,7 +119,7 @@ const Home = () => {
                         {/* CARD 1: OVERVIEW */}
                         <Card customClass="audit-card">
                             <div className="card-header">
-                                <div className="card-label">System Audit · Overview</div>
+                                <div className="card-label">Middleware Gateway · Live Audit</div>
                                 <svg className="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
                             </div>
                             <div className="card-body">
@@ -131,6 +131,7 @@ const Home = () => {
                                             </div>
                                             <div className="query-status">
                                                 <span className="status-bit">200 OK</span>
+                                                <span className="status-bit">MIDDLEWARE:PROXY</span>
                                                 <span className="status-bit">RAG:ACTIVE</span>
                                             </div>
                                         </div>
@@ -236,22 +237,22 @@ const Home = () => {
         <motion.div className="stats-container" {...fadeInUp}>
             <div className="stat-item">
                 <div className="stat-value counter" data-target="4">0</div>
-                <div className="stat-label">Evaluation Modules</div>
+                <div className="stat-label">Middleware Safety Modules</div>
             </div>
             <div className="stat-divider"></div>
             <div className="stat-item">
                 <div className="stat-value">&lt; <span className="counter" data-target="30">0</span>s</div>
-                <div className="stat-label">End-to-End Audit Time</div>
+                <div className="stat-label">Middleware Interception Time</div>
             </div>
             <div className="stat-divider"></div>
             <div className="stat-item">
                 <div className="stat-value"><span className="counter" data-target="11">0</span> Lakh+</div>
-                <div className="stat-label">PubMed Samples Supported</div>
+                <div className="stat-label">Knowledge Base Chunks</div>
             </div>
             <div className="stat-divider"></div>
             <div className="stat-item">
                 <div className="stat-value counter" data-target="0">0</div>
-                <div className="stat-label">Paid APIs Required</div>
+                <div className="stat-label">Paid Cloud APIs Required</div>
             </div>
         </motion.div>
     </section>
@@ -261,8 +262,8 @@ const Home = () => {
         <div className="section-container">
             <motion.div className="framework-header" {...fadeInUp}>
                 <div className="fh-left">
-                    <div className="section-label" style={{justifyContent: 'flex-start', color: '#10B981', letterSpacing: '2px', fontSize: '12px'}}>THE SAFETY FRAMEWORK</div>
-                    <h2 className="section-title" style={{textAlign: 'left', marginTop: '10px', fontSize: 'clamp(28px, 4vw, 42px)', marginBottom: '0'}}>Rigorous Clinical Verification Pipeline</h2>
+                    <div className="section-label" style={{justifyContent: 'flex-start', color: '#10B981', letterSpacing: '2px', fontSize: '12px'}}>MIDDLEWARE SECURITY PIPELINE</div>
+                    <h2 className="section-title" style={{textAlign: 'left', marginTop: '10px', fontSize: 'clamp(28px, 4vw, 42px)', marginBottom: '0'}}>Clinical Middleware Verification Gates</h2>
                 </div>
                 <div className="fh-right">
                     <div className="fh-quote">
@@ -419,7 +420,7 @@ const Home = () => {
                     </div>
                     <h3 className="fc-title">Faithfulness Scoring</h3>
                     <p className="fc-desc">NLI-based claim entailment utilizing fine-tuned DeBERTa-v3 to verify if the LLM output is grounded in provided context.</p>
-                    <div className="fc-tag">NLI VERIFICATION</div>
+                    <div className="fc-tag">MIDDLEWARE NLI SHIELD</div>
                 </motion.div>
 
                 <motion.div className="framework-card fc-blue" variants={fadeInUp}>
@@ -428,7 +429,7 @@ const Home = () => {
                     </div>
                     <h3 className="fc-title">Entity Verification</h3>
                     <p className="fc-desc">Drug & dosage cross-check via SciSpaCy NER and DrugBank validation to prevent lethal dosage hallucinations.</p>
-                    <div className="fc-tag">BIOMEDICAL NER</div>
+                    <div className="fc-tag">MIDDLEWARE NER GATE</div>
                 </motion.div>
 
                 <motion.div className="framework-card fc-amber" variants={fadeInUp}>
@@ -437,7 +438,7 @@ const Home = () => {
                     </div>
                     <h3 className="fc-title">Source Credibility</h3>
                     <p className="fc-desc">Hierarchical ranking of medical literature, from RCT meta-analyses to case reports and grey literature.</p>
-                    <div className="fc-tag">EVIDENCE TIERING</div>
+                    <div className="fc-tag">MIDDLEWARE SOURCE TIERING</div>
                 </motion.div>
 
                 <motion.div className="framework-card fc-rose" variants={fadeInUp}>
@@ -446,7 +447,7 @@ const Home = () => {
                     </div>
                     <h3 className="fc-title">Contradiction Detection</h3>
                     <p className="fc-desc">Advanced internal consistency checking across sentences and paragraphs to detect self-contradictory reasoning.</p>
-                    <div className="fc-tag">COHERENCE LOGIC</div>
+                    <div className="fc-tag">MIDDLEWARE CONTRADICTION CHECK</div>
                 </motion.div>
 
             </motion.div>
@@ -814,7 +815,7 @@ const Home = () => {
                 <motion.div className="ecosystem-content" {...fadeInUp}>
                     <div className="badge badge-outline">🇮🇳 Made for Bharat</div>
                     <h2 className="ecosystem-title">Designed for India's Digital Health Future</h2>
-                    <p className="ecosystem-text">From eSanjeevani's 13 crore teleconsultations to ABDM's national health stack, India's medical AI ecosystem needs a safety layer. MediRAG-Eval is built to be that layer — open, free, and deployable anywhere.</p>
+                    <p className="ecosystem-text">From eSanjeevani's 13 crore teleconsultations to ABDM's national health stack, India's medical AI ecosystem needs a safety middleware proxy. MediRAG 2.0 is built to be that layer — open, free, and deployable anywhere.</p>
                     <div className="ecosystem-logos">
                         <div className="logo-placeholder">eSanjeevani</div>
                         <div className="logo-placeholder">ABDM</div>

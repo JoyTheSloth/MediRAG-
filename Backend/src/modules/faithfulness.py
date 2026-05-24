@@ -280,12 +280,14 @@ def score_faithfulness(
 
     total = len(claims)
     score = max(0.0, (entailed - contradicted) / total) if total > 0 else 0.0
+    usr_val = round((neutral + contradicted) / total, 4) if total > 0 else 0.0
 
     details = {
         "total_claims": total,
         "entailed_count": entailed,
         "neutral_count": neutral,
         "contradicted_count": contradicted,
+        "unsupported_sentence_ratio": usr_val,
         "claims": claim_results,
     }
 

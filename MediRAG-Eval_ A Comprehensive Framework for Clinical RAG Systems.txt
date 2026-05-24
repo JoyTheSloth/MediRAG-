@@ -1,0 +1,99 @@
+﻿MediRAG-Eval: A Comprehensive Framework for Clinical RAG Systems
+1. Introduction and Clinical Context
+The Core Tension: Linguistic Fluidity vs. Clinical Safety
+The deployment of Large Language Models (LLMs) in clinical medicine is governed by a persistent tension between linguistic fluidity and clinical safety. While frontier models demonstrate sophisticated reasoning, their reliance on static parametric memory—knowledge encapsulated during training—induces factual drifts and hallucinations. In high-stakes medical environments, a model's inability to provide verifiable evidence or adapt to real-time pharmacological and diagnostic discoveries renders standalone generation insufficient for accountable healthcare workflows.
+Defining Retrieval-Augmented Generation (RAG) in Medicine
+Retrieval-Augmented Generation (RAG) provides the architectural solution by decoupling clinical knowledge storage from generative reasoning. Rather than relying on internal weights, the system queries authoritative medical databases to provide context-enriched prompts to the LLM. This shifts the model's role from a fallible knowledge repository to a deterministic reasoning engine bounded by peer-reviewed evidence.
+Operational and Regulatory Requirements
+Clinical RAG systems must adhere to non-negotiable operational thresholds and regulatory mandates:
+* Regulatory Compliance:  To satisfy HIPAA (US) and GDPR (EU) requirements, architectures must support on-premises execution to prevent the processing of Protected Health Information (PHI) in unauthorized cloud environments.
+* Latency Thresholds:  For integration into acute care workflows, end-to-end system response times—including retrieval, vector search, re-ranking, and generation—must remain below  two seconds .
+* Data Heterogeneity:  Systems must ingest unstructured, noisy Electronic Health Record (EHR) data, which is often fragmented and temporally complex.
+2. The MedRAG Architecture Family
+MedRAG Toolkit and MedCorp
+The MedRAG toolkit is an open-source, modular framework designed to standardize clinical retrieval pipelines. Its foundation is  MedCorp , a massive reference corpus indexing medical literature across four specific domains:| Domain | Specific Entry Count || ------ | ------ || PubMed Abstracts | 23.9 million summaries || Wikipedia (Medical) | 29.9 million passages || StatPearls | 301,200 clinical snippets || Medical Textbooks | 125,800 entries |
+MediRAG (PBAC)
+MediRAG is a federated, policy-bounded system designed for multi-institutional EHR access. It implements Policy-Based Access Control (PBAC) by delegating authorization to native Identity and Access Management (IAM) endpoints (e.g., Keycloak, AWS IAM). During indexing, every passage is assigned a globally unique  resourceID . At query time, the system performs real-time permission validation before documents are injected into the prompt, preventing unauthorized information disclosure.
+MediRAG Guard
+This system addresses "semantic isolation," where dense retrievers extract specific chunks but lose surrounding diagnostic context. MediRAG Guard utilizes a hierarchical  CONTEXT_TREE  where leaf nodes contain SHA256 hashes of document chunks. When a chunk is retrieved, the system traverses upward through the tree to extract parent concepts and sibling nodes, enriching the prompt with broader diagnostic boundaries.
+MedRAG Nexus
+MedRAG Nexus is a multimodal, agentic platform. It utilizes a  TR-OCR  (Transformer Optical Character Recognition) network to parse unstructured inputs like handwritten prescriptions and an  EfficientNet-B7  convolutional network for dermatological classification. It employs LangGraph-orchestrated ReAct agents to trigger external actions, such as scheduling specialists via the Google Calendar API.
+MedVRAG
+MedVRAG marks the transition to "multimodal page-level retrieval." Using vision-language models like  ColQwen2.5 , it renders PDF pages at  300 DPI  and embeds them as patch-level vectors (PCA-reduced to  d=128 ). This preserves visual data—such as patient timelines, dosage tables, and diagnostic flowcharts—that is typically lost during plain-text chunking.
+3. Procedural Workflows and Pipelines
+Standard MedRAG Workflow
+1. Ingestion & Quantization:  Chunk medical text into 500-token segments; convert to 768-dimensional embeddings.
+2. Indexing:  Quantize to 8-bit using Product Quantization (PQ) and index in a  FAISS IVFFlat  database with nlist = 512.
+3. Query Acceleration:  Execute search with an initial nprobe = 64; use an adaptive scheduler to increase search breadth if similarity scores are low.
+4. Context Assembly:  Retrieve top- $k$  relevant passages while withholding multi-choice options to avoid prompt contamination.
+5. Generation:  Generate a response using deterministic decoding (Temperature = 0).
+Iterative i-MedRAG Workflow
+1. Identification:  Parse the query to identify implicit medical information needs.
+2. Follow-up Generation:  Generate multiple targeted follow-up queries.
+3. Dynamic Querying:  Retrieve corresponding answers from MedCorp for each query.
+4. Memory Integration:  Integrate query-answer pairs into the active context window.
+5. Termination Check:  Repeat the loop for up to three rounds to refine the reasoning chain.
+Secure PBAC Workflow
+1. Secure Submission:  Clinician submits a query with a cryptographic security token.
+2. Federated Querying:  Route the search to decentralized, on-premises hospital vector databases.
+3. Real-Time Authorization Check:  Query the authoritative IAM endpoint (e.g., Keycloak) using the document’s  resourceID .
+4. Enforced Filtering:  Prune unauthorized documents from the context shortlist immediately.
+5. Context-Bounded Synthesis:  Generate output based solely on legally accessible patient files.
+4. Evaluation Framework and Metrics (MediRAG-Eval)
+The MIRAGE Benchmark
+The MIRAGE framework standardizes evaluation across several clinical protocols:
+* Zero-Shot Learning (ZSL):  Prohibits few-shot exemplars to test direct reliance on provided context.
+* Multi-Choice Evaluation (MCE):  Assesses reasoning via medical board exam questions.
+* Question-Only Retrieval (QOR):  Removes answer options from the query to ensure the search is driven solely by clinical symptoms.
+Technical Performance Metrics
+* Accuracy:   $\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}$
+* Precision@k:   $\text{Precision@}k = \frac{\text{Relevant Documents in Top } k}{k}$
+* F1-Score:   $2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$
+* Sensitivity:   $\frac{TP}{TP + FN}$  (Critical for diagnostic screening).
+* Specificity:   $\frac{TN}{TN + FP}$  (Critical for minimizing alert fatigue).
+* Linguistic metrics:
+* BLEU:  Measures  $n$ -gram precision against clinical gold standards.
+* ROUGE-L:   $\frac{(1 + \beta^2) R_{LCS} P_{LCS}}{R_{LCS} + \beta^2 P_{LCS}}$ , where  $\beta$  weights recall more heavily for clinical summarization.
+* BERTScore:   $\frac{1}{|x|} \sum_{x_i \in x} \max_{y_j \in y} \mathbf{E}(x_i)^\top \mathbf{E}(y_j)$  (semantic similarity via contextual embeddings).
+Clinical Safety & Grounding Metrics
+* Hallucination Rate:   $\frac{\text{Unsupported Claims}}{\text{Total Generated Claims}} \times 100\%$
+* Groundedness:   $\frac{\text{Evidentially Supported Assertions}}{\text{Total Assertions}}$
+* Unsupported Sentence Ratio (USR):   $\text{USR} = \frac{\text{Number of generated sentences lacking textual alignment}}{\text{Total number of generated sentences}}$ . Alignment is determined via TF-IDF cosine similarity between generated sentences and retrieved passages.
+* Citation Accuracy:  Percentage of cited claims actually supported by the source document.
+* The Verbosity Signal:  A statistical correlation ( $r = 0.81, p < 0.001$ ) between response length and factual error rate. Excessive verbosity often masks model uncertainty with internal parametric knowledge.
+5. Comparative Performance Analysis
+Performance Matrix of Twelve Clinical RAG Variants
+Based on on-premises evaluations of 250 de-identified patient case vignettes:| RAG Variant Name | Precision@5 | MRR | Hallucination Rate (%) | Latency (ms) || ------ | ------ | ------ | ------ | ------ || Dense Retrieval | 0.62 | 0.58 | 18.4% | 150 || Sparse Retrieval | 0.55 | 0.52 | 20.1% | 120 || Hybrid (RRF) | 0.68 | 0.62 | 11.2% | 180 || GraphRAG | 0.64 | 0.59 | 15.0% | 300 || Long RAG | 0.63 | 0.57 | 14.0% | 165 || Adaptive Retrieval | 0.66 | 0.60 | 12.5% | 170 || Multimodal RAG | 0.65 | 0.61 | 13.0% | 180 || SELF-RAG | 0.65 | 0.60 | 5.8% | 220 || CRAG | 0.63 | 0.58 | 14.3% | 200 || TrustRAG | 0.64 | 0.59 | 13.8% | 180 || Agentic RAG | 0.67 | 0.61 | 12.0% | 350 || Haystack | 0.69 | 0.64 | 10.5% | 240 |
+Key Findings
+* Highest Accuracy:  The  Haystack  pipeline (DPR + BM25 + Cross-Encoder) achieved the highest search precision ( $P@5 = 0.69$ ).
+* Safety Leader:   SELF-RAG  achieved the lowest hallucination rate ( 5.8% ) through self-reflective verification loops.
+* Trade-offs:  Sparse retrieval (BM25) remains the fastest (120ms) but suffers the highest hallucination rate (20.1%) due to keyword-matching limitations.
+Ablation Study Insights
+Integrating RAG yields a  1% to 18% performance improvement  over standard Chain-of-Thought (CoT) prompting. Mid-sized open-source models equipped with MedRAG context demonstrate diagnostic accuracy comparable to zero-shot GPT-4.
+6. Hallucination Mitigation and Security
+Mitigation Techniques
+1. StrictCitations:  Citation-enforced prompting that requires the model to prune any sentence lacking direct numerical citation from retrieved passages.
+2. Self-MedRAG (NLI Reflection):  An automated validation step where a lightweight NLI model (e.g., RoBERTa-MNLI) verifies if generated statements are logically supported by the context.
+3. Monte Carlo Dropout:  Measuring model uncertainty during generation ( $p=0.1$ ) to trigger "High Uncertainty" flags in the UI.
+Security Mechanisms
+* Provenance Tagging:  Inline document sourcing (e.g., "Source: PMID 12345678"). Implementing provenance tagging improved clinician trust scores by  12% .
+* WORM Ledgers:  The use of Write-Once Read-Many ledgers to maintain immutable audit trails for every data access and query.
+* Zero-Trust Alignment:  Real-time permission validation via native hospital IAM systems to prevent elevation of privilege.
+7. Strategic Roadmap and Future Directions
+Current Weaknesses
+* Iterative Latency:  Multi-round pipelines (i-MedRAG/MedVRAG) currently exceed the 2-second clinical threshold, with MedVRAG reaching ~15.9s per iteration.
+* Lost-in-the-Middle:  Generators frequently fail to process evidence located in the center of long, multi-document prompts.
+* Chunking Fragility:  Standard 512-token chunking fails to capture the structural layout of complex medical documents.
+Identified Research Gaps
+* Native EHR Benchmarks:  A scarcity of standardized benchmarks for retrieval over noisy, unstructured clinical records compared to structured exam questions.
+* API Documentation Heterogeneity:  High failure rates (0% exact match) without retrieval for domain-specific enterprise APIs, which often exceed the  8,000-token  threshold for single-chunk ingestion.
+Future Advancements
+* RAGCache & CacheBlend:  Implementation of dedicated inference caching to reduce latency in multi-hop iterative systems.
+* Unified FHIR Data Schemas:  Standardizing ingestion around Fast Healthcare Interoperability Resources to improve cross-network precision.
+* Real-time UI Safety Flags:  Deploying clinical monitors that alert providers when the  Verbosity Signal  indicates a high likelihood of factual drift.
+8. References
+* Wołk, K. (2025).  Evaluating Retrieval-Augmented Generation Variants for Clinical Decision Support: Hallucination Mitigation and Secure On-Premises Deployment.
+* Xiong, G., et al. (2024).  Benchmarking Retrieval-Augmented Generation for Medicine.
+* Soni, S. & Demner-Fushman, D. (2025).  Overview of the ArchEHR-QA 2025 Shared Task on Grounded Question Answering from Electronic Health Records.
+* Chen, X., et al. (2026).  Iterative Multimodal Retrieval-Augmented Generation for Medical Question Answering.
+* Marketsmüller, M., et al. (2026).  Evaluating Retrieval-Augmented Generation Variants for Natural Language-Based SQL and API Call Generation.

@@ -133,6 +133,16 @@ class Retriever:
                         self._fda_index.setdefault(drug_key, []).append(idx)
             logger.info("FDA drug index built: %d unique drugs", len(self._fda_index))
 
+            # Build sibling chunks lookup for O(1) context expansion (MediRAG Guard)
+            self._sibling_index: dict[str, dict[int, str]] = {}
+            for idx, meta in self._metadata.items():
+                d_id = meta.get("doc_id")
+                c_idx = meta.get("chunk_index")
+                c_text = meta.get("chunk_text") or meta.get("text")
+                if d_id is not None and c_idx is not None and c_text:
+                    self._sibling_index.setdefault(d_id, {})[c_idx] = c_text
+            logger.info("Sibling index built for context window expansion.")
+
             # Build keyword→guideline chunks lookup for clinical guidelines
             self._guideline_index: dict[str, list[int]] = {}
             for idx, meta in self._metadata.items():
@@ -287,6 +297,32 @@ class Retriever:
             })
         return chunks
 
+    def expand_chunk_context(self, doc_id: str, chunk_index: int, current_text: str) -> str:
+        """
+        MediRAG Guard Sibling Context Expansion.
+        Combines the current chunk with its immediate preceding and succeeding chunks
+        from the same document to prevent semantic isolation and retain clinical diagnostic boundaries.
+        """
+        siblings = getattr(self, "_sibling_index", {}).get(doc_id, {})
+        if not siblings:
+            return current_text
+            
+        parts = []
+        # Preceding context
+        prev_text = siblings.get(chunk_index - 1)
+        if prev_text:
+            parts.append(prev_text.strip())
+            
+        # Current context
+        parts.append(current_text.strip())
+        
+        # Succeeding context
+        next_text = siblings.get(chunk_index + 1)
+        if next_text:
+            parts.append(next_text.strip())
+            
+        return "\n".join(parts)
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -393,13 +429,20 @@ class Retriever:
         # Sort by RRF score descending — take RERANK_CANDIDATES (not just top-k)
         candidate_ids = sorted(rrf_scores.keys(), key=lambda i: rrf_scores[i], reverse=True)[:self.RERANK_CANDIDATES]
 
+        # Check if sibling context expansion is enabled (default is true for clinical safety)
+        use_expansion = self.config.get("retrieval", {}).get("expand_sibling_context", True)
+
         candidates: list[tuple[str, dict, float]] = []
         for faiss_idx in candidate_ids:
             meta = self._metadata.get(faiss_idx, {})
-            text = meta.get("chunk_text", "")
+            text = meta.get("chunk_text", "") or meta.get("text", "")
             meta["_retrieval_confidence"] = round(max_rrf_absolute, 6)
             meta["_top_faiss_cosine"] = round(_top_faiss_cosine, 4)
-            candidates.append((text, meta, rrf_scores[faiss_idx]))
+            if use_expansion and meta.get("doc_id") is not None and meta.get("chunk_index") is not None:
+                expanded_text = self.expand_chunk_context(meta["doc_id"], meta["chunk_index"], text)
+                candidates.append((expanded_text, meta, rrf_scores[faiss_idx]))
+            else:
+                candidates.append((text, meta, rrf_scores[faiss_idx]))
 
         # ── Re-ranking ────────────────────────────────────────────────────
         # Cross-encoder scores every (query, chunk) pair directly.

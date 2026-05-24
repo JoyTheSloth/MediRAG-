@@ -5,6 +5,7 @@ retrieval:
   embedding_model: dmis-lab/biobert-v1.1
   index_path: data/index/faiss.index
   metadata_path: data/index/metadata_store.pkl
+  expand_sibling_context: true
 
 modules:
   faithfulness:
